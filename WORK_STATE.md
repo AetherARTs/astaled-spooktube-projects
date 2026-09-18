@@ -2,6 +2,8 @@
 
 Updated 2026-09-18. User authorizes substantial production development. Latest explicit art direction: improve the hoodie, especially sleeves; the face must be a blank black display. LED emoticons are for later.
 
+Current user-facing status: [DEVLOG.md](DEVLOG.md) separates completed revision-4 work, current limits, unfinished CORE/V1 scope and verified QA results. Gameplay source checkpoint `e8e5ee9` is pushed to `master`; user playtest feedback is pending.
+
 ## Git workflow — user instruction, 2026-09-18
 - Commit coherent, tested work regularly and push completed checkpoints to the configured GitHub repository. The user explicitly requested pushing this production delivery and keeping Git up to date during ongoing development.
 - Canonical repository: `https://github.com/AetherARTs/astaled-spooktube-projects`, branch `master`. `origin` and `github.com` currently point to the same remote.
