@@ -1,0 +1,61 @@
+PASS
+Humanoid avatar valid in Play Mode
+Idle arms rest below head
+Blank display has no face geometry
+Bare chassis wardrobe
+Hoodie wardrobe hides chassis
+W input moves character forward
+Sprint input increases movement
+Jump input lifts character
+Death disables animated controller
+Death enables all eleven ragdoll bodies
+Original head renderer hidden
+Separate head survives body death
+Detached head cannot scout beyond radius
+Detached head collides with apartment wall
+Ragdoll settles on apartment floor
+Hands and shoes have compound colliders
+Shoe collider remains above floor
+Shoe collider remains above floor
+Stable body Hips
+Stable body Chest
+Stable body LeftUpperArm
+Stable body LeftLowerArm
+Stable body RightUpperArm
+Stable body RightLowerArm
+Stable body LeftUpperLeg
+Stable body LeftLowerLeg
+Stable body RightUpperLeg
+Stable body RightLowerLeg
+Stable body Neck
+Repair restores player control
+Repair disables ragdoll simulation
+Repair restores original head
+MainCam rejects pickup beyond reach
+MainCam rejects pickup through an obstruction
+MainCam pickup within reach
+Held camera has one owner and no dynamic body
+Held camera rejects duplicate pickup
+Held MainCam displays a live lens preview
+Both hands reach the physical camera grips
+R input records actual frames
+Q input drops physical camera
+Dropped camera continues the same take
+Detached head cannot pick up MainCam
+Take commits to disk
+Saved take contains recorded data
+Saved take reloads with stable camera and scene bindings
+P input opens recorded take
+Replay uses recorded lens pose
+Replay preserves recorded ragdoll pose
+Replay contains rendering components only, no physics or gameplay scripts
+Scrubbing leaves live actors unchanged
+P input closes take review
+Truncated take is rejected without losing the current take
+Valid take retained after invalid import
+Camera can record another take after review
+Write failure preserves unsaved recorded frames
+A new recording cannot overwrite an unsaved take
+Saving can be retried after a storage error
+Held lens cannot record through a wall
+First-person view stays in front of a wall

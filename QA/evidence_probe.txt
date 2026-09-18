@@ -1,0 +1,1 @@
+lens=(0.10, 1.46, 8.72) enemy=(0.00, 2.07, 12.84) visible=1 readable=1 framing=0.8622388

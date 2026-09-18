@@ -49,6 +49,9 @@
 *.nupkg
 **/[Pp]ackages/*
 !**/[Pp]ackages/build/
+# Unity dependency manifests are source files, not generated NuGet packages.
+!/Packages/manifest.json
+!/Packages/packages-lock.json
 
 # .NET build artifacts
 artifacts/

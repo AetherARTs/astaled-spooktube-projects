@@ -1,0 +1,55 @@
+PASS
+Isolated career starts without touching player saves
+Empty workstation is accessible before first expedition
+Studio focus blocks gameplay departure
+Expedition starts for the production loop
+Lit visible Surgeon is readable in the recording lens
+Wall between lens and Surgeon gives zero visual evidence
+Subject behind the lens gives zero visual evidence
+Unlit subject is not credited as readable footage
+Real lens/world recording starts with evidence capture
+Continuous visibility seeds an actual sighting
+Warning evidence comes from the AI's confirmed state
+Crew survives the filmed encounter
+Footage and confirmed moments save atomically
+Recording contains multiple confirmed moments
+Unrecovered footage cannot earn upload rewards
+Crew returns with the recorded tape
+Extraction recovers the tape in the career catalog
+Mission completion alone awards no episode money
+Bobby loads recovered footage across the scene boundary
+Episode preview uses the isolated recorded world
+Persisted evidence generates a valid EDL
+Same recorded inputs produce the same Bobby cut
+Context padding respects footage and episode budgets
+Audience seed is stable across repeated evaluations
+Audience comments reference only included evidence
+Real filmed evidence yields a bounded audience response
+Preview and auto editing do not settle rewards
+Manual trimming edits the EDL
+Undo restores the exact previous edit
+Redo reapplies the edit
+Non-finite edit rejected
+Overlapping or repeated moments rejected
+Cut beyond recorded footage rejected
+EDL playhead maps to actual recorded lens timestamps
+Episode playback has no physics or enemy AI
+Episode preview has exactly one audio listener
+Workstation has a keyboard/gamepad focus target
+Episode plays moving recorded footage
+Failed upload save pays nothing and keeps the draft
+Upload commits episode and payment together
+Integer 60/40 split conserves the full revenue
+Career wallet matches committed upload receipt
+Duplicate upload does not pay or create a save revision
+Changing the edit cannot farm an already released expedition
+Insufficient funds cannot install a free upgrade
+Archive preview restores the exact published cuts
+Committed episode and reward survive career reload
+Reload restores the exact Team Fund
+Purchase check loads its own explicit funded fixture
+Upgrades are available at the home workstation
+Failed purchase save neither charges nor grants an upgrade
+Upgrade and its cost commit in the same revision
+Installed upgrade cannot charge a second time
+Purchased capability persists after reload

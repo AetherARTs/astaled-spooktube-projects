@@ -1,0 +1,7 @@
+/Build/
+/QA/*.log
+*.blend1
+*.blend2
+/Builds/
+__pycache__/
+*.pyc

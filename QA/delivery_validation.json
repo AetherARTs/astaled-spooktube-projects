@@ -1,0 +1,34 @@
+{
+    "status":  "PASS",
+    "date":  "2026-09-18",
+    "checks":  120,
+    "suites":  [
+                   {
+                       "report":  "playmode_validation.txt",
+                       "status":  "PASS",
+                       "checks":  60
+                   },
+                   {
+                       "report":  "take_reload_validation.txt",
+                       "status":  "PASS",
+                       "checks":  4
+                   },
+                   {
+                       "report":  "hospital_playmode_validation.txt",
+                       "status":  "PASS",
+                       "checks":  48
+                   },
+                   {
+                       "report":  "hospital_take_reload_validation.txt",
+                       "status":  "PASS",
+                       "checks":  3
+                   },
+                   {
+                       "report":  "hospital_door_validation.txt",
+                       "status":  "PASS",
+                       "checks":  5
+                   }
+               ],
+    "buildBytes":  175741748,
+    "scope":  "Solo hospital run, crew/camera, game-audio replay; not full GDD/CORE"
+}

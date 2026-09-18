@@ -1,0 +1,7 @@
+State=Search
+Position=(-5.12, 0.04, 9.71)
+Destination=(-5.50, 0.06, 6.00)
+Current=PathComplete
+Fresh=PathComplete
+Remaining=Infinity
+Obstacle=False

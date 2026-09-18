@@ -1,0 +1,6 @@
+PASS
+Investigation starts behind a closed connecting door
+Surgeon reaches and forces the door after a warning delay
+Forced door leaves a physically open passage
+Investigation resumes through the opened door
+Surgeon physically crosses into the next room

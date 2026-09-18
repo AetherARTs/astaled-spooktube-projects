@@ -1,0 +1,5 @@
+PASS
+21 Blender assets imported
+6 medical rooms, corridor and RV forecourt
+Native NavMesh baked; every room reachable with doors open
+House departure and footage review connected

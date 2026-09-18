@@ -1,0 +1,38 @@
+{
+  "blender": "5.2.2 LTS",
+  "bones": 59,
+  "meshes": {
+    "Head": {
+      "vertices": 1896,
+      "triangles": 3628,
+      "materials": 7
+    },
+    "Body": {
+      "vertices": 6100,
+      "triangles": 11796,
+      "materials": 5
+    },
+    "Outfit": {
+      "vertices": 10872,
+      "triangles": 21448,
+      "materials": 6
+    },
+    "Gear": {
+      "vertices": 2258,
+      "triangles": 4372,
+      "materials": 7
+    },
+    "Chassis": {
+      "vertices": 2852,
+      "triangles": 5452,
+      "materials": 5
+    }
+  },
+  "clips": [
+    "Idle",
+    "Walk",
+    "Run"
+  ],
+  "status": "PASS",
+  "display": "Blank black glass; no eyes or blink shape"
+}

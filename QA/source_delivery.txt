@@ -1,0 +1,4 @@
+PASS
+Unity asset/script files SHA-256 matched: 201
+Canonical PlayerSettings, EditorBuildSettings, Packages manifest and lock unchanged.
+Character art/black screen and existing scene configuration retained. No commit or push.

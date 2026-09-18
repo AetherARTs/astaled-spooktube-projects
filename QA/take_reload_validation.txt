@@ -1,0 +1,5 @@
+PASS
+Saved take loads after restarting Unity
+Recorded timeline persists across sessions
+Fresh session rebuilds replay from current assets
+Reloaded take renders

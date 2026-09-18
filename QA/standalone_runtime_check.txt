@@ -1,0 +1,6 @@
+PASS
+GPU-enabled Windows development build alive and responding for 115.7 seconds.
+Log read and checked after closing the QA process; no managed/game exceptions or asset-load failures found.
+This is a boot check, not a frame-rate benchmark or standalone full-loop playtest.
+Startup diagnostics: 
+QA stopped only its own staging executable, PID 17916.

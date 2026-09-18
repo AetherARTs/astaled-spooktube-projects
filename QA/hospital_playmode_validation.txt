@@ -1,0 +1,49 @@
+PASS
+House starts with a mission session
+Depart loads hospital
+Duplicate departure rejected
+MainCam accompanies crew into the mission
+Surgeon spawns on walkable floor
+Extraction rejected outside RV zone
+Hospital cannot be paused by entering footage review
+Open door reconnects navigation
+Open doorway has physical clearance
+Closed door blocks line of sight
+Surgeon can reach main corridor
+MainCam records hospital tracks
+Surgeon gives a warning before pursuit
+Warning does not deal immediate damage
+Visible crew is pursued after warning
+Hospital walls occlude crew
+Interpolated bones cannot reveal a hidden root position
+Occluded crew does not update last known position during search
+Lost target search is bounded
+Hospital footage flushes to disk
+Saved hospital take contains the actual encounter timeline
+Hospital take loads with recorded sound tracks / TAKE LOADED
+New takes retain audio and filmed evidence
+Take contains playing audio samples
+Mission journal links the saved take
+RV starts extraction countdown
+Duplicate extraction rejected
+Walking away cancels departure
+Basic recovery permits departure after dropping gear
+Extraction returns to production house
+Completed run is settled exactly once
+Crew and basic MainCam are restored at home
+Atomic run journal exists
+Home review opens saved hospital footage
+Review has a separate mission phase
+Review never runs enemy simulation
+Cross-scene review retains recorded duration
+Replay clones have no gameplay or physics
+Replay has recorded spatial sound sources
+Only recorded camera listens during review
+Review grants no duplicate completion
+Live audio listener is restored after review
+A second mission can start
+Surgeon windup can knock down crew in range
+Detached head cannot extract alone
+Solo all-down returns through cloud recovery
+Recovery settles only its own run
+Failed journal write cannot transition out of home

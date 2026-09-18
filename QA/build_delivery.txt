@@ -1,0 +1,4 @@
+PASS
+Build files SHA-256 matched: 294
+Executable: D:\Projects\SPOOKYTUBER\Builds\Windows\SpookTuber.exe
+Revision 4 / local evidence, Bobby editing, episode upload and progression

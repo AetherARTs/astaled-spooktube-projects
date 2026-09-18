@@ -1,0 +1,4 @@
+PASS
+Hospital take survives fresh Unity process / TAKE LOADED
+New takes retain audio and filmed evidence
+Persisted take retains recorded audio events

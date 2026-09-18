@@ -1,0 +1,5 @@
+PASS
+Legacy hospital footage loads with its audio and poses
+Legacy footage does not acquire fabricated evidence
+Saving an unchanged legacy take does not rewrite or duplicate it
+Legacy house footage loads / TAKE LOADED

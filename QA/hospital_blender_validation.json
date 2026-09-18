@@ -1,0 +1,89 @@
+{
+  "status": "PASS",
+  "assets": {
+    "H_Wall_4m": {
+      "triangles": 432,
+      "vertices": 224
+    },
+    "H_Floor_4m": {
+      "triangles": 6924,
+      "vertices": 3592
+    },
+    "H_Ceiling_4m": {
+      "triangles": 12,
+      "vertices": 8
+    },
+    "H_DoorFrame": {
+      "triangles": 324,
+      "vertices": 168
+    },
+    "H_Door": {
+      "triangles": 1144,
+      "vertices": 592
+    },
+    "H_Bed": {
+      "triangles": 3124,
+      "vertices": 1608
+    },
+    "H_MedicalCart": {
+      "triangles": 3120,
+      "vertices": 1600
+    },
+    "H_MedicineCabinet": {
+      "triangles": 820,
+      "vertices": 424
+    },
+    "H_Chair": {
+      "triangles": 776,
+      "vertices": 400
+    },
+    "H_WaitingBench": {
+      "triangles": 1208,
+      "vertices": 624
+    },
+    "H_Locker": {
+      "triangles": 680,
+      "vertices": 352
+    },
+    "H_IVStand": {
+      "triangles": 1928,
+      "vertices": 992
+    },
+    "H_OperatingTable": {
+      "triangles": 872,
+      "vertices": 448
+    },
+    "H_SurgicalLamp": {
+      "triangles": 1544,
+      "vertices": 792
+    },
+    "H_Monitor": {
+      "triangles": 1024,
+      "vertices": 528
+    },
+    "H_PrivacyScreen": {
+      "triangles": 1996,
+      "vertices": 1032
+    },
+    "H_Fluorescent": {
+      "triangles": 388,
+      "vertices": 200
+    },
+    "H_SupplyCrate": {
+      "triangles": 432,
+      "vertices": 224
+    },
+    "H_PaperDebris": {
+      "triangles": 120,
+      "vertices": 80
+    },
+    "H_CrewRV": {
+      "triangles": 6012,
+      "vertices": 3096
+    },
+    "Surgeon": {
+      "triangles": 9168,
+      "bones": 14
+    }
+  }
+}

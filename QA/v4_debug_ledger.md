@@ -1,0 +1,13 @@
+# Revision 4 verification ledger
+
+- Production-loop Play Mode check: PASS. Actual visual evidence, recording, extraction, EDL, moving replay, manual edits, reward settlement and purchase failure/reload are exercised in isolated QA careers.
+- First UI render inspection: immediate screenshots could show a stale timecode/preview and low-resolution font atlas after changing the capture target. Runtime labels now initialize with the current playhead; the QA camera forces the recorded view, text rebuild and 1:1 canvas scale before capture. Subsequent 1600x900 renders are readable.
+- First auto-cut inspection: neighboring confirmed AI states produced overlapping context windows, which caused the greedy selector to discard surrounding shots. Related overlapping candidates now join into one bounded continuous shot with explicit supporting evidence IDs. EDL validation and comment evidence checks include every supporting ID.
+- All existing character/camera/hospital suites passed after the production loop was integrated. New-process career and EDL reload passed; reward and upgrade duplication are rejected.
+- Legacy file regression: actual revision 3 house take fails with `Take assets unavailable`, while the same reader successfully loads the revision 3 hospital take. This rules out the format-2/audio reader as the common cause.
+- Source trace: CrewTake.LoadTake calls SceneSources/Key and rejects missing hierarchy keys. The legacy house file binds `MissionConnection[0]/Label_FOOTAGE REVIEW[0]`; regenerated house YAML instead contains `Label_BOBBY / EDIT & RELEASE`. Label() derives object identity from visible text. No runtime debugger is attached in the batch harness; the reader diagnostic now names missing keys to test whether this is the only missing binding.
+
+- Diagnostic rerun: the only missing key is `MissionConnection[0]/Label_FOOTAGE REVIEW[0]`. The hospital take still passes. This confirms the identity change, rather than audio, rig, content-version or file corruption.
+- Fix: Label() accepts an explicit identity; the Bobby desk keeps the original footage-label hierarchy key while showing its new display text. Saved/loaded takes with no pending changes are no longer rewritten into a new format or duplicated by SaveTake().
+- Verification: regenerated house and hospital, then loaded both real revision 3 files in a fresh process. All four legacy checks pass. The original character/camera suite and fresh saved-take reload also pass after the binding fix.
+- Career recovery check now uses valid JSON with a deliberately mismatched payload checksum. It correctly restores the verified backup, reports recovery and preserves both files when neither copy can be trusted.

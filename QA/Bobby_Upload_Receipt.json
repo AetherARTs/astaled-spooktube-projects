@@ -1,0 +1,46 @@
+﻿{
+    "episode":  {
+                    "version":  1,
+                    "editorLevel":  0,
+                    "id":  "0f7ed2de1463af18a4ebe1a7fcaf49ca90f48f13c04ebb5655e0c2cc04eae066",
+                    "takeId":  "a1b86c7f3764473bb48f83b19d914fa6",
+                    "runId":  "e28eee761d244fc28aa7cf48841d7ee0",
+                    "sourcePath":  "QA/Bobby_Regression.sttake",
+                    "preset":  "Documentary",
+                    "cuts":  [
+                                 {
+                                     "momentId":  "a1b86c7f3764473bb48f83b19d914fa6:2",
+                                     "cameraId":  "MAIN-01",
+                                     "reason":  "Pursuit / TheSurgeon",
+                                     "supportingIds":  [
+                                                           "a1b86c7f3764473bb48f83b19d914fa6:1",
+                                                           "a1b86c7f3764473bb48f83b19d914fa6:3",
+                                                           "a1b86c7f3764473bb48f83b19d914fa6:0"
+                                                       ],
+                                     "start":  0.0,
+                                     "end":  7.806188583374023
+                                 }
+                             ]
+                },
+    "transactionId":  "reward:0f7ed2de1463af18a4ebe1a7fcaf49ca90f48f13c04ebb5655e0c2cc04eae066",
+    "algorithm":  "local-audience-v1",
+    "uploadedUtc":  "2026-09-18T12:50:00.7784739Z",
+    "views":  440,
+    "subscribers":  6,
+    "revenueMinor":  1320,
+    "teamMinor":  792,
+    "personalMinor":  528,
+    "quality":  0.7470278143882752,
+    "retention":  0.807906985282898,
+    "comments":  [
+                     "It started chasing while the camera was rolling.",
+                     "The warning was the moment to back away.",
+                     "There is something moving in that hospital."
+                 ],
+    "evidenceMomentIds":  [
+                              "a1b86c7f3764473bb48f83b19d914fa6:2",
+                              "a1b86c7f3764473bb48f83b19d914fa6:1",
+                              "a1b86c7f3764473bb48f83b19d914fa6:3",
+                              "a1b86c7f3764473bb48f83b19d914fa6:0"
+                          ]
+}

@@ -1,0 +1,42 @@
+﻿[
+    {
+        "report":  "playmode_validation.txt",
+        "result":  "PASS",
+        "checks":  60
+    },
+    {
+        "report":  "take_reload_validation.txt",
+        "result":  "PASS",
+        "checks":  4
+    },
+    {
+        "report":  "hospital_playmode_validation.txt",
+        "result":  "PASS",
+        "checks":  48
+    },
+    {
+        "report":  "hospital_take_reload_validation.txt",
+        "result":  "PASS",
+        "checks":  3
+    },
+    {
+        "report":  "hospital_door_validation.txt",
+        "result":  "PASS",
+        "checks":  5
+    },
+    {
+        "report":  "bobby_playmode_validation.txt",
+        "result":  "PASS",
+        "checks":  54
+    },
+    {
+        "report":  "bobby_reload_validation.txt",
+        "result":  "PASS",
+        "checks":  14
+    },
+    {
+        "report":  "legacy_take_validation.txt",
+        "result":  "PASS",
+        "checks":  4
+    }
+]

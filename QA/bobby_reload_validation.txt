@@ -1,0 +1,15 @@
+PASS
+Fresh Unity process restores published episode
+Fresh process restores exact upload balance
+Fresh process reopens saved editing source
+Fresh process restores filmed evidence and saved EDL
+Two disjoint cuts can use real recorded ranges
+Exact cut boundary jumps to the next recorded source range
+Manual clip order changes playback without changing source timestamps
+Restart cannot pay the same expedition again
+Editor upgrade changes actual clip decisions and context budget
+Fresh process restores purchased editor capability
+Valid JSON with a mismatched checksum restores the verified backup with notice
+Two damaged saves are reported instead of starting a new career
+Damaged career cannot be silently overwritten by departure
+Recovery failure preserves the original files

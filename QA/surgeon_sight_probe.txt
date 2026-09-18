@@ -1,0 +1,3 @@
+Before teleport=(0.00, 0.03, 8.01)
+After settle=(0.00, 0.03, 8.01)
+Hidden crew=(-5.00, 0.01, -3.00)
