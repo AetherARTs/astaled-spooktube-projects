@@ -17,7 +17,8 @@ namespace SpookTuber
         CharacterController motor;
         CrewBody body;
         InputActionMap inputs;
-        InputAction move,look,sprint,jump,interact,lightToggle,pause,view,record,drop,review,scrub;
+        InputAction move,look,sprint,jump,interact,lightToggle,pause,view,record,drop,review,scrub,aim;
+        public bool Aiming=>locked&&aim!=null&&aim.IsPressed();
         float pitch=12,yaw,vertical;
         bool locked=true;
         float stepDistance;
@@ -38,6 +39,7 @@ namespace SpookTuber
             view=inputs.AddAction("View",InputActionType.Button,"<Keyboard>/v");view.AddBinding("<Gamepad>/rightStickPress");
             record=inputs.AddAction("Record",InputActionType.Button,"<Keyboard>/r");record.AddBinding("<Gamepad>/rightTrigger");
             drop=inputs.AddAction("Drop",InputActionType.Button,"<Keyboard>/q");drop.AddBinding("<Gamepad>/buttonEast");
+            aim=inputs.AddAction("Aim",InputActionType.Button,"<Mouse>/rightButton");aim.AddBinding("<Gamepad>/leftTrigger");
             review=inputs.AddAction("Review",InputActionType.Button,"<Keyboard>/p");review.AddBinding("<Gamepad>/select");
             scrub=inputs.AddAction("Scrub",InputActionType.Value);
             scrub.AddCompositeBinding("1DAxis").With("Negative","<Keyboard>/leftArrow").With("Positive","<Keyboard>/rightArrow");

@@ -253,6 +253,7 @@ namespace SpookTuber.Editor
             var shape=root.AddComponent<BoxCollider>();shape.center=new Vector3(0,.025f,.025f);shape.size=new Vector3(.29f,.28f,.38f);
             var rb=root.AddComponent<Rigidbody>();rb.mass=1.2f;rb.collisionDetectionMode=CollisionDetectionMode.ContinuousDynamic;rb.interpolation=RigidbodyInterpolation.Interpolate;
             var take=root.AddComponent<CrewTake>();var camera=root.AddComponent<MainCam>();
+            camera.heldOffset=new Vector3(.20f,-.25f,.48f);
             camera.screen=display.GetComponent<Renderer>();
             camera.lens=new GameObject("MainCam_Lens").transform;camera.lens.SetParent(root.transform,false);camera.lens.localPosition=new Vector3(0,0,.24f);
             camera.rightGrip=new GameObject("Grip_RightHand").transform;camera.rightGrip.SetParent(root.transform,false);camera.rightGrip.localPosition=new Vector3(.15f,-.025f,-.10f);

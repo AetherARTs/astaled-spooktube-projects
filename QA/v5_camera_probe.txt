@@ -1,0 +1,8 @@
+angle=0
+peak moving angle=0
+item=(325.02, 269.36, 0.00)
+view=(325.02, 269.36, 0.00)
+rb=(325.07, 269.20, 0.00)
+interpolation=None
+left hand=(-3.14, 1.44, -1.51)
+left grip=(-3.21, 1.49, -1.48)

@@ -12,7 +12,8 @@ namespace SpookTuber
         public AudioSource impact;
         public Renderer screen;
         public RenderTexture LivePreview {get;private set;}
-        public Vector3 heldOffset=new Vector3(.10f,-.13f,.36f);
+        public Vector3 heldOffset=new Vector3(.20f,-.25f,.48f);
+        public Vector3 aimedOffset=new Vector3(.02f,-.105f,.37f);
         public CrewMotor Holder {get;private set;}
         public CrewTake Take {get;private set;}
         Rigidbody physicsBody;
@@ -20,6 +21,8 @@ namespace SpookTuber
         Camera previewCamera;
         Material screenMaterial;
         float nextPreview;
+        float aimBlend;
+        int poseFrame=-1;
         void Awake(){
             physicsBody=GetComponent<Rigidbody>();colliders=GetComponentsInChildren<Collider>();Take=GetComponent<CrewTake>();
             if(screen){
@@ -39,7 +42,7 @@ namespace SpookTuber
             var direction=transform.position-origin;
             if(Physics.Raycast(origin,direction.normalized,out var hit,direction.magnitude,~(1<<8),QueryTriggerInteraction.Ignore)
                 && hit.collider.GetComponentInParent<MainCam>()!=this)return false;
-            Holder=crew;physicsBody.isKinematic=true;
+            Holder=crew;physicsBody.interpolation=RigidbodyInterpolation.None;physicsBody.isKinematic=true;
             foreach(var c in colliders)c.enabled=false;
             transform.SetParent(crew.viewCamera.transform,false);
             transform.localPosition=heldOffset;transform.localRotation=Quaternion.identity;
@@ -57,7 +60,7 @@ namespace SpookTuber
             transform.SetParent(null,true);transform.position=next;Holder=null;
             foreach(var t in GetComponentsInChildren<Transform>())t.gameObject.layer=0;
             foreach(var c in colliders)c.enabled=true;
-            Physics.SyncTransforms();physicsBody.isKinematic=false;physicsBody.linearVelocity=forward*.4f;
+            Physics.SyncTransforms();physicsBody.isKinematic=false;physicsBody.interpolation=RigidbodyInterpolation.Interpolate;physicsBody.linearVelocity=forward*.4f;
         }
         void Update(){if(Holder&&Holder.GetComponent<CrewBody>().IsDowned)Drop();}
         void OnCollisionEnter(Collision hit)
@@ -68,13 +71,17 @@ namespace SpookTuber
         }
         void LateUpdate(){
             UpdateHeldPose();
-            if(previewCamera&&(Holder||Take.Recording)&&!Take.Reviewing&&Time.unscaledTime>=nextPreview){previewCamera.Render();nextPreview=Time.unscaledTime+.1f;}
+            if(previewCamera&&(Holder||Take.Recording)&&!Take.Reviewing&&Time.unscaledTime>=nextPreview){previewCamera.Render();nextPreview=Time.unscaledTime+1f/30;}
         }
         void OnDestroy(){if(LivePreview){LivePreview.Release();Destroy(LivePreview);}if(screenMaterial)Destroy(screenMaterial);}
         public void UpdateHeldPose()
         {
             if(!Holder)return;
-            transform.localPosition=heldOffset;
+            if(poseFrame!=Time.frameCount){poseFrame=Time.frameCount;aimBlend=Mathf.MoveTowards(aimBlend,Holder.Aiming?1:0,Time.deltaTime*6);}
+            float eased=Mathf.SmoothStep(0,1,aimBlend);
+            transform.localPosition=Vector3.Lerp(heldOffset,aimedOffset,eased);
+            // Held poses belong to the view, not the interpolated world Rigidbody.
+            transform.localRotation=Quaternion.identity;
             var origin=Holder.GetComponent<CrewBody>().headBone.position;
             var delta=lens.position-origin;
             if(delta.sqrMagnitude>0&&Physics.SphereCast(origin,.04f,delta.normalized,out var hit,delta.magnitude,~(1<<8),QueryTriggerInteraction.Ignore))
