@@ -216,7 +216,7 @@ namespace SpookTuber.Editor
         {
             var go=new GameObject(name,typeof(RectTransform));go.transform.SetParent(parent,false);
             var r=go.GetComponent<RectTransform>();r.anchorMin=r.anchorMax=anchor;r.pivot=pivot;r.anchoredPosition=pos;r.sizeDelta=box;
-            var t=go.AddComponent<Text>();t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var t=go.AddComponent<Text>();t.font=GameUi.Body;
             t.text=text;t.fontSize=size;t.color=new Color(.88f,.85f,.77f);t.raycastTarget=false;
             return t;
         }

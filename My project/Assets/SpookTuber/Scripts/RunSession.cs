@@ -23,6 +23,14 @@ namespace SpookTuber
         public long PersonalMoney=>record.personalMinor;
         public long Subscribers=>record.subscribers;
         public long TotalViews=>record.views;
+        public long Credits=>record.teamMinor+record.personalMinor;
+        public int QuotaDay=>record.quotaDay;
+        public int QuotaCycle=>record.quotaCycle;
+        public long QuotaViews=>record.quotaViews;
+        public long QuotaTarget=>record.quotaTarget;
+        public bool DayFinished=>record.dayFinished;
+        public bool QuotaFailed=>record.quotaDay==3&&record.dayFinished&&record.quotaViews<record.quotaTarget;
+        public string QuotaStatus=>$"DAY {QuotaDay}/3 / VIEWS {QuotaViews:N0}/{QuotaTarget:N0}";
         public int BobbyLevel=>record.bobbyLevel;
         public int SaveRevision=>record.revision;
         public IReadOnlyList<RecoveredTake> Takes=>record.takes;
@@ -39,7 +47,11 @@ namespace SpookTuber
         string reviewPath;
         [Serializable] sealed class Journal
         {
-            public int version=2,completedRuns,revision,bobbyLevel;
+            public int version=3,completedRuns,revision,bobbyLevel;
+            public int quotaDay=1,quotaCycle=1,runCycle=1,contractsPassed;
+            public long quotaViews,quotaTarget=1000;
+            public bool dayFinished;
+            public List<int> ownedGear=new();
             public string runId="",settledRunId="",takePath="",outcome="",finishedUtc="";
             public long teamMinor,personalMinor,subscribers,views;
             public List<RecoveredTake> takes=new();
@@ -66,6 +78,7 @@ namespace SpookTuber
             // CrewBody creates the stable detached-head track in Awake.
             yield return null;
             crew=FindFirstObjectByType<CrewMotor>();if(!crew)yield break;
+            var rv=FindObjectsByType<MissionGate>(FindObjectsSortMode.None).FirstOrDefault(g=>g.action==MissionGate.Action.Extract);if(rv)RVPosition=rv.transform.position;
             take=crew.mainCam.Take;crew.GetComponent<CrewBody>().SetOutfit(hoodie);downedAt=-1;
             if(Phase==RunPhase.Review){
                 foreach(var enemy in FindObjectsByType<Surgeon>(FindObjectsSortMode.None))enemy.enabled=false;
@@ -84,6 +97,13 @@ namespace SpookTuber
             if(Phase!=RunPhase.House||Studio.IsOpen||!crew||crew.GetComponent<CrewBody>().IsDowned||!FlushTake())return false;
             hoodie=crew.GetComponent<CrewBody>().WearsHoodie;
             var next=Copy();next.runId=Guid.NewGuid().ToString("N");next.outcome="In progress";
+            if(next.dayFinished){
+                if(next.quotaDay<3)next.quotaDay++;
+                else if(next.quotaViews>=next.quotaTarget){next.contractsPassed++;next.quotaCycle++;next.quotaDay=1;next.quotaViews=0;next.quotaTarget=Math.Min(1000000,(long)(next.quotaTarget*1.35));}
+                else {Notice="3-day quota missed / publish remaining footage or retry the contract from your phone";return false;}
+                next.dayFinished=false;
+            }
+            next.runCycle=next.quotaCycle;
             if(!SaveJournal(next))return false;
             Notice="Loading hospital...";Phase=RunPhase.Loading;SceneManager.LoadSceneAsync("Hospital");return true;
         }
@@ -99,7 +119,7 @@ namespace SpookTuber
         {
             if((Phase==RunPhase.Hospital||Phase==RunPhase.Extracting)&&runId==record.runId){
                 record.takePath=path;
-                if(!record.takes.Any(t=>t.id==id))record.takes.Add(new RecoveredTake{id=id,runId=runId,path=path,duration=duration});
+                if(!record.takes.Any(t=>t.id==id))record.takes.Add(new RecoveredTake{id=id,runId=runId,path=path,duration=duration,quotaCycle=record.runCycle});
                 SaveJournal();
             }
         }
@@ -108,7 +128,8 @@ namespace SpookTuber
             if(Phase!=RunPhase.Hospital||!crew||crew.GetComponent<CrewBody>().IsDowned||!AtRV())return false;
             countdown=3;Phase=RunPhase.Extracting;return true;
         }
-        bool AtRV()=>crew&&Vector3.Distance(crew.transform.position,new Vector3(0,0,-5.4f))<3.5f;
+        public Vector3 RVPosition {get;private set;}=new(0,0,-5.4f);
+        public bool AtRV()=>crew&&Vector3.Distance(crew.transform.position,RVPosition)<3.5f;
         void Update()
         {
             if(!crew||IsBusy||Phase==RunPhase.House)return;
@@ -134,6 +155,7 @@ namespace SpookTuber
             var next=Copy();
             if(next.settledRunId!=next.runId){
                 next.completedRuns++;next.settledRunId=next.runId;
+                next.dayFinished=true;
                 next.outcome=extracted?"Extracted":"Cloud recovery";next.finishedUtc=DateTime.UtcNow.ToString("O");
                 foreach(var source in next.takes.Where(t=>t.runId==next.runId))source.recovered=true;
             }
@@ -147,15 +169,23 @@ namespace SpookTuber
                 Notice="No hospital footage saved yet";return false;
             }
             if(!FlushTake())return false;
-            studioRequested=false;reviewPath=record.takePath;reviewLoading=true;Phase=RunPhase.Review;SceneManager.LoadSceneAsync("Hospital");return true;
+            string scene=CrewTake.SceneForTake(record.takePath);if(scene==null){Notice="Footage content is unavailable / original file kept";return false;}
+            studioRequested=false;reviewPath=record.takePath;reviewLoading=true;Phase=RunPhase.Review;SceneManager.LoadSceneAsync(scene);return true;
         }
         public bool OpenStudio()
         {
             if(Phase!=RunPhase.House||Studio.IsOpen||!FlushTake())return false;
             var source=record.takes.LastOrDefault(t=>t.recovered&&File.Exists(t.path));
             if(source==null){Studio.Open(null);return true;}
-            studioRequested=true;reviewPath=source.path;reviewLoading=true;Phase=RunPhase.Review;Notice="Bobby is loading the footage...";
-            SceneManager.LoadSceneAsync("Hospital");return true;
+            return SwitchStudioTake(source.path);
+        }
+        public bool SwitchStudioTake(string path)
+        {
+            if(Phase!=RunPhase.House&&Phase!=RunPhase.Review)return false;
+            string scene=CrewTake.SceneForTake(path);if(scene==null){Notice="Footage content is unavailable / original file kept";return false;}
+            if(Studio.IsOpen)Studio.Close(false);
+            studioRequested=true;reviewPath=path;reviewLoading=true;Phase=RunPhase.Review;Notice="Bobby is loading the footage...";
+            SceneManager.LoadSceneAsync(scene);return true;
         }
         public void CloseStudio(){if(Phase==RunPhase.Review)ReturnFromReview();}
         void ReturnFromReview(){Phase=RunPhase.Returning;Notice="FOOTAGE REVIEW COMPLETE";SceneManager.LoadSceneAsync("ProductionHouse");}
@@ -176,18 +206,38 @@ namespace SpookTuber
             if(receipt!=null){Notice="This expedition already has a published episode / no extra payment";return false;}
             var next=Copy();var result=episode.Evaluate(source,record.subscribers);
             result.transactionId="reward:"+result.episode.id;result.teamMinor=result.revenueMinor*recovered.teamPercent/100;result.personalMinor=result.revenueMinor-result.teamMinor;
-            try{checked{next.teamMinor+=result.teamMinor;next.personalMinor+=result.personalMinor;next.subscribers+=result.subscribers;next.views+=result.views;}}
+            try{checked{next.teamMinor+=result.teamMinor;next.personalMinor+=result.personalMinor;next.subscribers+=result.subscribers;next.views+=result.views;if(recovered.quotaCycle==next.quotaCycle)next.quotaViews+=result.views;}}
             catch(OverflowException){Notice="Career balance limit reached";return false;}
             next.publications.Add(result);next.draft=result.episode;
             if(!SaveJournal(next))return false;
             receipt=result;Notice=$"UPLOADED / {result.views:N0} views / +{result.subscribers:N0} subscribers";return true;
         }
         public const long BobbyUpgradeCost=2500;
+        public bool RetryContract()
+        {
+            if(Phase!=RunPhase.House||Studio.IsOpen||!QuotaFailed)return false;
+            var next=Copy();next.quotaCycle++;next.quotaDay=1;next.quotaViews=0;next.dayFinished=false;
+            if(!SaveJournal(next))return false;Notice="New 3-day contract / owned equipment and Credit kept";return true;
+        }
+        public bool OwnsGear(CarryItem.Kind kind)=>kind==CarryItem.Kind.Camera||kind==CarryItem.Kind.GravityGlove||record.ownedGear.Contains((int)kind);
+        public static long GearPrice(CarryItem.Kind kind)=>kind==CarryItem.Kind.ProductionLight?1200:kind==CarryItem.Kind.Noisemaker?600:0;
+        public bool TradeGear(CarryItem.Kind kind,bool sell)
+        {
+            long price=GearPrice(kind);
+            if(Phase!=RunPhase.House||Studio.IsOpen||price==0||OwnsGear(kind)!=sell){Notice="That trade is not available";return false;}
+            if(!sell&&Credits<price){Notice="Not enough Credit";return false;}
+            var next=Copy();
+            if(sell){if(Credits>long.MaxValue-price/2){Notice="Career balance limit reached";return false;}next.ownedGear.Remove((int)kind);next.teamMinor+=price/2;}
+            else{next.ownedGear.Add((int)kind);long team=Math.Min(next.teamMinor,price);next.teamMinor-=team;next.personalMinor-=price-team;}
+            if(!SaveJournal(next))return false;
+            if(sell)foreach(var item in FindObjectsByType<CarryItem>(FindObjectsSortMode.None))if(item.kind==kind&&item.Owner)item.Owner.Drop(item);
+            Notice=(sell?"Sold / +":"Purchased / -")+(sell?price/2m:price)/100m+" Credit";return true;
+        }
         public bool UpgradeBobby()
         {
             if(!Studio.IsOpen||record.bobbyLevel>=1){Notice="Bobby's context editor is already installed";return false;}
-            if(record.teamMinor<BobbyUpgradeCost){Notice="Not enough Team Fund for the context editor";return false;}
-            var next=Copy();next.teamMinor-=BobbyUpgradeCost;next.bobbyLevel=1;
+            if(Credits<BobbyUpgradeCost){Notice="Not enough Credit for the context editor";return false;}
+            var next=Copy();long fromTeam=Math.Min(next.teamMinor,BobbyUpgradeCost);next.teamMinor-=fromTeam;next.personalMinor-=BobbyUpgradeCost-fromTeam;next.bobbyLevel=1;
             if(!SaveJournal(next))return false;
             Notice="CONTEXT EDITOR INSTALLED / longer lead-ins, cleaner framing, 36s episodes";return true;
         }
@@ -198,7 +248,8 @@ namespace SpookTuber
         }
         static void Validate(Journal loaded)
         {
-            if(loaded==null||loaded.version!=2||loaded.completedRuns<0||loaded.revision<0||loaded.bobbyLevel<0||loaded.bobbyLevel>1||loaded.teamMinor<0||loaded.personalMinor<0||loaded.subscribers<0||loaded.views<0||loaded.takes==null||loaded.publications==null||loaded.takes.Count>4096||loaded.publications.Count>2048)throw new InvalidDataException("Invalid career");
+            if(loaded==null||loaded.version!=3||loaded.completedRuns<0||loaded.revision<0||loaded.bobbyLevel<0||loaded.bobbyLevel>1||loaded.teamMinor<0||loaded.personalMinor<0||loaded.subscribers<0||loaded.views<0||loaded.takes==null||loaded.publications==null||loaded.takes.Count>4096||loaded.publications.Count>2048)throw new InvalidDataException("Invalid career");
+            if(loaded.teamMinor>long.MaxValue-loaded.personalMinor||loaded.quotaDay<1||loaded.quotaDay>3||loaded.quotaCycle<1||loaded.quotaCycle>=int.MaxValue||loaded.runCycle<1||loaded.contractsPassed<0||loaded.quotaViews<0||loaded.quotaTarget<1||loaded.quotaTarget>1000000||loaded.ownedGear==null||loaded.ownedGear.Any(g=>g<2||g>3)||loaded.ownedGear.Distinct().Count()!=loaded.ownedGear.Count)throw new InvalidDataException("Invalid contract or equipment");
             if(loaded.takes.Any(t=>t==null||!Guid.TryParseExact(t.id,"N",out _)||!Guid.TryParseExact(t.runId,"N",out _)||string.IsNullOrEmpty(t.path)||t.path.Length>1024||!float.IsFinite(t.duration)||t.duration<0||t.duration>60.01f||t.teamPercent<0||t.teamPercent>100)||loaded.takes.Select(t=>t.id).Distinct().Count()!=loaded.takes.Count)throw new InvalidDataException("Invalid footage catalog");
             if(loaded.publications.Any(p=>p==null||p.episode==null||string.IsNullOrEmpty(p.transactionId)||p.transactionId!="reward:"+p.episode.id||p.views<0||p.subscribers<0||p.revenueMinor<0||p.teamMinor<0||p.personalMinor<0||p.teamMinor>p.revenueMinor||p.personalMinor!=p.revenueMinor-p.teamMinor)||loaded.publications.Select(p=>p.episode.runId).Distinct().Count()!=loaded.publications.Count)throw new InvalidDataException("Invalid reward ledger");
         }
@@ -218,6 +269,7 @@ namespace SpookTuber
                         if(loaded==null||loaded.version!=1)throw new InvalidDataException("Unrecognized career format");
                         loaded.version=2;loaded.takes??=new();loaded.publications??=new();
                     }
+                    if(loaded.version==2){loaded.version=3;loaded.quotaDay=1;loaded.quotaCycle=1;loaded.runCycle=1;loaded.quotaTarget=1000;loaded.quotaViews=0;loaded.dayFinished=false;loaded.ownedGear=new();}
                     Validate(loaded);record=loaded;blockedSavePath=null;backupRecovered=path.EndsWith(".bak",StringComparison.Ordinal);
                     if(backupRecovered)Notice="Restored career backup / revision "+record.revision;
                     return true;

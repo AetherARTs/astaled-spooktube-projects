@@ -7,26 +7,29 @@ namespace SpookTuber
     {
         public CrewBody body;
         CrewMotor motor;
+        CrewInventory inventory;
+        CrewPhone phone;
         Quaternion leftBasis,rightBasis;
         readonly List<(Transform bone,Quaternion rest,Vector3 axis,float angle)> fingers=new();
         void Awake()
         {
             motor=body.GetComponent<CrewMotor>();
+            inventory=body.GetComponent<CrewInventory>();phone=body.GetComponent<CrewPhone>();
             leftBasis=HandBasis(HumanBodyBones.LeftHand,HumanBodyBones.LeftMiddleProximal,HumanBodyBones.LeftIndexProximal,HumanBodyBones.LeftLittleProximal);
             rightBasis=HandBasis(HumanBodyBones.RightHand,HumanBodyBones.RightMiddleProximal,HumanBodyBones.RightIndexProximal,HumanBodyBones.RightLittleProximal);
-            foreach(var side in new[]{"Left","Right"})foreach(var finger in new[]{"Index","Middle","Ring","Little"}){
+            foreach(var side in new[]{"Left","Right"})foreach(var finger in new[]{"Thumb","Index","Middle","Ring","Little"}){
                 var proximal=body.animator.GetBoneTransform(System.Enum.Parse<HumanBodyBones>(side+finger+"Proximal"));
                 var tip=body.animator.GetBoneTransform(System.Enum.Parse<HumanBodyBones>(side+finger+"Distal"));
-                var axis=Vector3.Cross((tip.position-proximal.position).normalized,-body.transform.up).normalized;
+                var axis=Vector3.Cross((tip.position-proximal.position).normalized,body.transform.up).normalized;
                 foreach(var joint in new[]{"Proximal","Intermediate","Distal"}){
                     var bone=body.animator.GetBoneTransform(System.Enum.Parse<HumanBodyBones>(side+finger+joint));
-                    fingers.Add((bone,bone.localRotation,bone.InverseTransformDirection(axis),joint=="Proximal"?38:joint=="Intermediate"?52:25));
+                    fingers.Add((bone,bone.localRotation,bone.InverseTransformDirection(axis),finger=="Thumb"?25:joint=="Proximal"?45:joint=="Intermediate"?68:30));
                 }
             }
         }
         void LateUpdate()
         {
-            if(!motor||!motor.mainCam||motor.mainCam.Holder!=motor||body.IsDowned)return;
+            if(!motor||body.IsDowned||!(inventory&&inventory.Active&&!inventory.Suspended||phone&&phone.IsOpen))return;
             foreach(var f in fingers)f.bone.localRotation=f.rest*Quaternion.AngleAxis(f.angle,f.axis);
         }
         Quaternion HandBasis(HumanBodyBones handId,HumanBodyBones middleId,HumanBodyBones indexId,HumanBodyBones littleId)
@@ -40,18 +43,31 @@ namespace SpookTuber
         }
         void OnAnimatorIK(int layer)
         {
-            var item=motor?motor.mainCam:null;
-            bool holding=item&&item.Holder==motor&&!body.IsDowned;
+            if(!inventory)inventory=body.GetComponent<CrewInventory>();if(!phone)phone=body.GetComponent<CrewPhone>();
+            var item=inventory&&!inventory.Suspended?inventory.Active:null;
+            bool holding=(item||phone&&phone.IsOpen)&&!body.IsDowned;
             var animator=body.animator;
+            if(motor&&!body.IsDowned){
+                float crouch=motor.CrouchAmount;animator.bodyPosition-=body.transform.up*(crouch*.42f*body.transform.lossyScale.y);
+                foreach(var foot in new[]{AvatarIKGoal.LeftFoot,AvatarIKGoal.RightFoot}){
+                    animator.SetIKPositionWeight(foot,crouch);var target=animator.GetIKPosition(foot);target.y=body.transform.position.y+.09f*body.transform.lossyScale.y;animator.SetIKPosition(foot,target);
+                }
+            }
             foreach(var hand in new[]{AvatarIKGoal.LeftHand,AvatarIKGoal.RightHand}){
-                animator.SetIKPositionWeight(hand,holding?1:0);animator.SetIKRotationWeight(hand,holding?1:0);
+                bool useHand=holding&&(hand==AvatarIKGoal.RightHand||item&&item.leftGrip);
+                animator.SetIKPositionWeight(hand,useHand?1:0);animator.SetIKRotationWeight(hand,useHand?1:0);
             }
             if(!holding)return;
-            motor.UpdateView();item.UpdateHeldPose();
-            animator.SetIKPosition(AvatarIKGoal.RightHand,item.rightGrip.position);
-            animator.SetIKPosition(AvatarIKGoal.LeftHand,item.leftGrip.position);
-            animator.SetIKRotation(AvatarIKGoal.RightHand,Quaternion.LookRotation(item.transform.forward,item.transform.right)*rightBasis);
-            animator.SetIKRotation(AvatarIKGoal.LeftHand,Quaternion.LookRotation(item.transform.forward,-item.transform.right)*leftBasis);
+            motor.UpdateView();inventory.UpdateHeldPose();
+            var targetRight=item?item.rightGrip:phone.RightGrip;
+            if(!targetRight)return;
+            var basis=item?item.transform:phone.RightGrip;
+            animator.SetIKPosition(AvatarIKGoal.RightHand,targetRight.position);
+            animator.SetIKRotation(AvatarIKGoal.RightHand,(phone&&phone.IsOpen?Quaternion.LookRotation(-basis.right,basis.forward):Quaternion.LookRotation(basis.forward,basis.right))*rightBasis);
+            if(item&&item.leftGrip){
+                animator.SetIKPosition(AvatarIKGoal.LeftHand,item.leftGrip.position);
+                animator.SetIKRotation(AvatarIKGoal.LeftHand,Quaternion.LookRotation(basis.right,-basis.up)*leftBasis);
+            }
             animator.SetIKHintPositionWeight(AvatarIKHint.RightElbow,1);animator.SetIKHintPositionWeight(AvatarIKHint.LeftElbow,1);
             animator.SetIKHintPosition(AvatarIKHint.RightElbow,body.transform.TransformPoint(new Vector3(.38f,1.0f,.04f)));
             animator.SetIKHintPosition(AvatarIKHint.LeftElbow,body.transform.TransformPoint(new Vector3(-.35f,.99f,.10f)));

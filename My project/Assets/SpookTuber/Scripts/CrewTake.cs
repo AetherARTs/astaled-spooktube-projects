@@ -13,7 +13,19 @@ namespace SpookTuber
     public sealed class CrewTake : MonoBehaviour
     {
         const string Format="SPOOKTAKE-3";
-        static string Content=>SceneManager.GetActiveScene().name=="Hospital"?"hospital-crew-v1":"production-house-crew-v2";
+        static string SceneIdentity=>SceneManager.GetActiveScene().name.Replace("_v4","");
+        static string Content=>SceneManager.GetActiveScene().name.EndsWith("_v4",StringComparison.Ordinal)?(SceneIdentity=="Hospital"?"hospital-crew-v1":"production-house-crew-v2"):(SceneIdentity=="Hospital"?"hospital-solo-v5":"production-house-solo-v5");
+        public static string SceneForTake(string path)
+        {
+            try{
+                if(new FileInfo(path).Length>128*1024*1024)return null;
+                using var reader=new BinaryReader(File.OpenRead(path));string format=reader.ReadString();if(format!="SPOOKTAKE-1"&&format!="SPOOKTAKE-2"&&format!="SPOOKTAKE-3")return null;
+                string content=reader.ReadString();string scene=reader.ReadString();
+                if(scene!="Hospital"&&scene!="ProductionHouse")return null;
+                if(content=="hospital-crew-v1"&&scene=="Hospital"||content=="production-house-crew-v2"&&scene=="ProductionHouse")return scene+"_v4";
+                return content=="hospital-solo-v5"&&scene=="Hospital"||content=="production-house-solo-v5"&&scene=="ProductionHouse"?scene:null;
+            }catch(Exception e) when(e is IOException||e is UnauthorizedAccessException||e is FormatException){return null;}
+        }
         // ponytail: 60-second local takes; chunk streaming is required before long multi-camera runs.
         const float SampleInterval=.05f, MaxDuration=60;
         public RawImage reviewImage;
@@ -66,6 +78,7 @@ namespace SpookTuber
         static string Key(Transform t)
         {
             if(t.TryGetComponent<MainCam>(out var item))return "Camera:"+item.cameraId;
+            if(t.TryGetComponent<CarryItem>(out var gear)&&!string.IsNullOrEmpty(gear.itemId))return "Gear:"+gear.itemId;
             int ordinal=0;
             var siblings=t.parent?t.parent.Cast<Transform>():t.gameObject.scene.GetRootGameObjects().Select(g=>g.transform);
             foreach(var sibling in siblings){if(sibling==t)break;if(sibling.name==t.name)ordinal++;}
@@ -75,7 +88,7 @@ namespace SpookTuber
         {
             return SceneManager.GetActiveScene().GetRootGameObjects()
                 .Where(g=>!g.GetComponent<Canvas>()&&g.layer!=9&&g.name!="QA_Camera")
-                .SelectMany(g=>g.GetComponentsInChildren<Transform>(true)).Where(t=>t.gameObject.layer!=9)
+                .SelectMany(g=>g.GetComponentsInChildren<Transform>(true)).Where(t=>t.gameObject.layer!=9&&!t.GetComponentInParent<Canvas>(true))
                 .ToDictionary(Key,t=>t,StringComparer.Ordinal);
         }
         void Bind(Transform[] nodes)
@@ -123,7 +136,7 @@ namespace SpookTuber
                 string pending=final+".partial";
                 using(var stream=new FileStream(pending,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
                     using(var w=new BinaryWriter(stream,System.Text.Encoding.UTF8,true)){
-                        w.Write(Format);w.Write(Content);w.Write(SceneManager.GetActiveScene().name);w.Write(equipment.cameraId);
+                        w.Write(Format);w.Write(Content);w.Write(SceneIdentity);w.Write(equipment.cameraId);
                         w.Write(keys.Length);w.Write(lensIndex);w.Write(frames.Count);
                         for(int i=0;i<keys.Length;i++){w.Write(keys[i]);Write(w,scales[i]);}
                         foreach(var f in frames){w.Write(f.time);for(int i=0;i<keys.Length;i++){
@@ -149,7 +162,7 @@ namespace SpookTuber
                 if(new FileInfo(path).Length>128*1024*1024)throw new InvalidDataException("Take exceeds memory budget");
                 using var r=new BinaryReader(File.OpenRead(path));
                 var format=r.ReadString();bool hasEvidence=format==Format;bool hasAudio=hasEvidence||format=="SPOOKTAKE-2";
-                if((!hasAudio&&format!="SPOOKTAKE-1")||r.ReadString()!=Content||r.ReadString()!=SceneManager.GetActiveScene().name||r.ReadString()!=equipment.cameraId)throw new InvalidDataException("Take belongs to another scene or content version");
+                if((!hasAudio&&format!="SPOOKTAKE-1")||r.ReadString()!=Content||r.ReadString()!=SceneIdentity||r.ReadString()!=equipment.cameraId)throw new InvalidDataException("Take belongs to another scene or content version");
                 int count=r.ReadInt32(),lens=r.ReadInt32(),length=r.ReadInt32();
                 if(count<1||count>4096||lens<0||lens>=count||length<1||length>1203)throw new InvalidDataException("Invalid take size");
                 var names=new string[count];var size=new Vector3[count];

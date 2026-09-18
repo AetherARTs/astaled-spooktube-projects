@@ -20,7 +20,7 @@ namespace SpookTuber.Editor
         static string QA=>Path.GetFullPath(Path.Combine(Application.dataPath,"../../QA"));
         static Transform world;
         static readonly Dictionary<string,Material> materials=new();
-        static Material Mat(string name,Color color,float metal=0)
+        internal static Material Mat(string name,Color color,float metal=0)
         {
             string path=Art+"Materials/"+name+".mat";
             var mat=AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -33,25 +33,26 @@ namespace SpookTuber.Editor
             if(name=="H_Light"){mat.globalIlluminationFlags=MaterialGlobalIlluminationFlags.BakedEmissive;mat.EnableKeyword("_EMISSION");mat.SetColor("_EmissionColor",color*1.6f);}
             EditorUtility.SetDirty(mat);materials[name]=mat;return mat;
         }
-        static GameObject Box(string name,Vector3 pos,Vector3 size,string mat,Transform parent=null)
+        internal static GameObject Box(string name,Vector3 pos,Vector3 size,string mat,Transform parent=null)
         {
             var go=GameObject.CreatePrimitive(PrimitiveType.Cube);go.name=name;go.transform.SetParent(parent);
             go.transform.position=pos;go.transform.localScale=size;go.GetComponent<Renderer>().sharedMaterial=materials[mat];return go;
         }
-        static GameObject Prop(string name,Vector3 pos,float yaw=0,Transform parent=null,bool collision=true)
+        internal static GameObject Prop(string name,Vector3 pos,float yaw=0,Transform parent=null,bool collision=true)
         {
             var go=new GameObject(name);go.transform.SetParent(parent?parent:world);go.transform.SetPositionAndRotation(pos,Quaternion.Euler(0,yaw,0));
             // Keep the FBX root's Blender-to-Unity axis conversion intact.
-            var model=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Art+"Models/"+name+".fbx"));model.transform.SetParent(go.transform,false);
+            var source=AssetDatabase.LoadAssetAtPath<GameObject>(Root+"Environment/Models/"+name+".fbx");if(!source)source=AssetDatabase.LoadAssetAtPath<GameObject>(Art+"Models/"+name+".fbx");
+            var model=(GameObject)PrefabUtility.InstantiatePrefab(source);model.transform.SetParent(go.transform,false);
             if(collision)foreach(var mesh in go.GetComponentsInChildren<MeshFilter>())mesh.gameObject.AddComponent<MeshCollider>().sharedMesh=mesh.sharedMesh;
             return go;
         }
-        static void Label(string text,Vector3 pos,float yaw=0,float size=.17f,Transform parent=null,string identity=null)
+        internal static void Label(string text,Vector3 pos,float yaw=0,float size=.17f,Transform parent=null,string identity=null)
         {
             var go=new GameObject(identity??"Label_"+text);go.transform.SetParent(parent?parent:world);go.transform.SetPositionAndRotation(pos,Quaternion.Euler(0,yaw,0));
             var label=go.AddComponent<TextMesh>();label.text=text;label.fontSize=64;label.characterSize=size*.25f;label.anchor=TextAnchor.MiddleCenter;label.color=new Color(.68f,.75f,.63f);
         }
-        static AudioSource Sound(GameObject owner,string clip,float volume,bool loop=false)
+        internal static AudioSource Sound(GameObject owner,string clip,float volume,bool loop=false)
         {
             var node=new GameObject(clip);node.transform.SetParent(owner.transform,false);var audio=node.AddComponent<AudioSource>();
             audio.clip=AssetDatabase.LoadAssetAtPath<AudioClip>(Art+"Audio/"+clip+".wav");audio.spatialBlend=1;audio.minDistance=1.5f;audio.maxDistance=18;
@@ -251,7 +252,7 @@ namespace SpookTuber.Editor
             Capture(motor.viewCamera,new Vector3(-2.5f,1.6f,11.7f),new Vector3(-5.8f,1.2f,14.5f),"Hospital_OperatingRoom.png");
             Capture(motor.viewCamera,new Vector3(4.7f,2.2f,-2.4f),new Vector3(0,1.1f,-8),"Hospital_CrewRV.png");
         }
-        static void HUD(CrewMotor motor)
+        internal static void HUD(CrewMotor motor)
         {
             var canvas=new GameObject("CrewHUD").AddComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;
             var scaler=canvas.gameObject.AddComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scaler.referenceResolution=new Vector2(1920,1080);

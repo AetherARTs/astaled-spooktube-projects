@@ -65,6 +65,7 @@ namespace SpookTuber
             if(active) Physics.SyncTransforms();
             foreach (var b in ragdoll) {
                 b.isKinematic=!active;
+                b.interpolation=active?RigidbodyInterpolation.Interpolate:RigidbodyInterpolation.None;
                 if (active) { b.linearVelocity=Vector3.zero; b.angularVelocity=Vector3.zero; }
             }
         }

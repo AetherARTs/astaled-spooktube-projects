@@ -117,5 +117,6 @@ namespace SpookTuber
         public float duration;
         public bool recovered;
         public int teamPercent=60;
+        public int quotaCycle;
     }
 }

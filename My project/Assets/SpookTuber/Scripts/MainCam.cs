@@ -12,12 +12,13 @@ namespace SpookTuber
         public AudioSource impact;
         public Renderer screen;
         public RenderTexture LivePreview {get;private set;}
-        public Vector3 heldOffset=new Vector3(.20f,-.25f,.48f);
-        public Vector3 aimedOffset=new Vector3(.02f,-.105f,.37f);
-        public CrewMotor Holder {get;private set;}
+        public Vector3 heldOffset=new Vector3(.14f,-.18f,.35f);
+        public Vector3 aimedOffset=new Vector3(.02f,-.07f,.33f);
+        public CrewMotor Holder=>carry&&carry.Equipped?carry.Owner.Motor:null;
         public CrewTake Take {get;private set;}
         Rigidbody physicsBody;
         Collider[] colliders;
+        CarryItem carry;
         Camera previewCamera;
         Material screenMaterial;
         float nextPreview;
@@ -25,6 +26,8 @@ namespace SpookTuber
         int poseFrame=-1;
         void Awake(){
             physicsBody=GetComponent<Rigidbody>();colliders=GetComponentsInChildren<Collider>();Take=GetComponent<CrewTake>();
+            carry=GetComponent<CarryItem>();if(!carry)carry=gameObject.AddComponent<CarryItem>();
+            carry.kind=CarryItem.Kind.Camera;carry.itemId=cameraId;carry.displayName="MainCam";carry.leftGrip=leftGrip;carry.rightGrip=rightGrip;
             if(screen){
                 LivePreview=new RenderTexture(320,180,16);LivePreview.Create();
                 previewCamera=lens.gameObject.AddComponent<Camera>();previewCamera.enabled=false;previewCamera.fieldOfView=65;previewCamera.nearClipPlane=.035f;
@@ -36,38 +39,18 @@ namespace SpookTuber
         }
         public bool TryPickup(CrewMotor crew)
         {
-            if(!crew || Holder || crew.GetComponent<CrewBody>().IsDowned)return false;
-            var origin=crew.GetComponent<CrewBody>().headBone.position;
-            if(Vector3.Distance(origin,transform.position)>2.2f)return false;
-            var direction=transform.position-origin;
-            if(Physics.Raycast(origin,direction.normalized,out var hit,direction.magnitude,~(1<<8),QueryTriggerInteraction.Ignore)
-                && hit.collider.GetComponentInParent<MainCam>()!=this)return false;
-            Holder=crew;physicsBody.interpolation=RigidbodyInterpolation.None;physicsBody.isKinematic=true;
-            foreach(var c in colliders)c.enabled=false;
-            transform.SetParent(crew.viewCamera.transform,false);
-            transform.localPosition=heldOffset;transform.localRotation=Quaternion.identity;
-            foreach(var t in GetComponentsInChildren<Transform>())t.gameObject.layer=8;
-            crew.firstPerson=true;return true;
+            return carry&&carry.TryPickup(crew);
         }
         public void Drop()
         {
-            if(!Holder)return;
-            var forward=Holder.transform.forward;
-            // The drop point is beside the crew, not at a third-person camera position.
-            var origin=Holder.GetComponent<CrewBody>().headBone.position;
-            var next=origin+forward*.48f;
-            if(Physics.SphereCast(origin,.18f,forward,out var hit,.48f,~(1<<8),QueryTriggerInteraction.Ignore))next=origin+forward*Mathf.Max(0,hit.distance-.02f);
-            transform.SetParent(null,true);transform.position=next;Holder=null;
-            foreach(var t in GetComponentsInChildren<Transform>())t.gameObject.layer=0;
-            foreach(var c in colliders)c.enabled=true;
-            Physics.SyncTransforms();physicsBody.isKinematic=false;physicsBody.interpolation=RigidbodyInterpolation.Interpolate;physicsBody.linearVelocity=forward*.4f;
+            if(carry&&carry.Owner)carry.Owner.Drop(carry);
         }
         void Update(){if(Holder&&Holder.GetComponent<CrewBody>().IsDowned)Drop();}
         void OnCollisionEnter(Collision hit)
         {
             float speed=hit.relativeVelocity.magnitude;if(Holder||speed<1)return;
             if(impact)impact.Play();
-            foreach(var enemy in FindObjectsByType<Surgeon>(FindObjectsSortMode.None))enemy.Hear(transform.position,Mathf.Min(10,2+speed*2));
+            WorldNoise.Emit(transform.position,Mathf.Min(10,2+speed*2),"Camera impact");
         }
         void LateUpdate(){
             UpdateHeldPose();

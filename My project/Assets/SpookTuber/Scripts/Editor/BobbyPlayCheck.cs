@@ -32,14 +32,17 @@ namespace SpookTuber.Editor
         static string legacyMessage;
         static readonly BindingFlags Private=BindingFlags.Instance|BindingFlags.NonPublic;
         [Serializable] sealed class Envelope {public int schema=2;public string payload,checksum;}
+        [Serializable] sealed class AutoCareer {public int version=3,quotaDay=1,quotaCycle=1,runCycle=1;public long quotaTarget=1000;public List<int> ownedGear=new();public List<RecoveredTake> takes=new();public List<EpisodeReceipt> publications=new();}
         static BobbyPlayCheck(){if(SessionState.GetBool(Flag,false))EditorApplication.update+=Tick;}
         public static void Run(){Begin(false);}
         public static void RunReload(){Begin(true);}
-        public static void RunLegacy(){Begin(false);SessionState.SetBool(Flag+".Legacy",true);}
+        public static void RunAutomatic(){Begin(false);SessionState.SetBool(Flag+".Automatic",true);}
+        public static void RunLegacy(){Begin(false);SessionState.SetBool(Flag+".Legacy",true);EditorSceneManager.OpenScene("Assets/SpookTuber/Scenes/Legacy/ProductionHouse_v4.unity");}
         static void Begin(bool reload)
         {
             SessionState.SetBool(Flag+".Reload",reload);SessionState.SetBool(Flag,true);
             SessionState.SetBool(Flag+".Legacy",false);
+            SessionState.SetBool(Flag+".Automatic",false);
             EditorSceneManager.OpenScene("Assets/SpookTuber/Scenes/ProductionHouse.unity");EditorApplication.update-=Tick;EditorApplication.update+=Tick;EditorApplication.EnterPlaymode();
         }
         static void Check(bool pass,string name){if(!pass)throw new Exception(name);checks.Add(name);Debug.Log("BOBBY_CHECK "+name);}
@@ -61,11 +64,12 @@ namespace SpookTuber.Editor
                 if(started==0){started=EditorApplication.timeSinceStartup;stamp=Time.time;Application.runInBackground=true;Application.logMessageReceived+=Log;}
                 if(EditorApplication.timeSinceStartup-started>240)throw new Exception("Bobby check timed out at stage "+stage);
                 float dt=Time.time-stamp;
+                if(SessionState.GetBool(Flag+".Automatic",false)){AutomaticTick(dt);return;}
                 if(SessionState.GetBool(Flag+".Legacy",false)){
                     if(stage==0&&dt>1){
                         Bind();legacyHouse=take.LoadTake(Path.Combine(QA,"Legacy_House.sttake"));legacyMessage=take.Message;
                         File.WriteAllText(Path.Combine(QA,"legacy_binding_probe.txt"),"House loaded="+legacyHouse+" / "+legacyMessage);
-                        SceneManager.LoadScene("Hospital");Next();
+                        SceneManager.LoadScene("Hospital_v4");Next();
                     }else if(stage==1&&dt>1){
                         Bind();Check(take.LoadTake(Path.Combine(QA,"Legacy_Hospital.sttake")),"Legacy hospital footage loads with its audio and poses");
                         Check(take.Moments.Count==0&&take.TakeId=="","Legacy footage does not acquire fabricated evidence");
@@ -102,12 +106,15 @@ namespace SpookTuber.Editor
                 }else if(stage==6&&dt>2.2f){
                     Check(!body.IsDowned,"Crew survives the filmed encounter");Check(take.StopRecording(),"Footage and confirmed moments save atomically");
                     Check(take.Moments.Count>=2,"Recording contains multiple confirmed moments");Check(session.Takes.Count==1&&!session.Takes[0].recovered,"Unrecovered footage cannot earn upload rewards");
-                    surgeon.enabled=false;Place(-4.5f);Check(session.BeginExtraction(),"Crew returns with the recorded tape");Next();
+                    surgeon.enabled=false;Place(session.RVPosition.z+1);Check(session.BeginExtraction(),"Crew returns with the recorded tape");Next();
                 }else if(stage==7&&dt>1&&session.Phase==RunSession.RunPhase.House){
                     Check(session.CompletedRuns==1&&session.Takes[0].recovered,"Extraction recovers the tape in the career catalog");Check(session.TeamMoney==0&&session.PersonalMoney==0,"Mission completion alone awards no episode money");
                     Check(session.OpenStudio(),"Bobby loads recovered footage across the scene boundary");Next();
                 }else if(stage==8&&dt>.5f&&session.Studio.IsOpen){
-                    take=session.Studio.Source;var desk=session.Studio;var episode=desk.Episode;
+                    take=session.Studio.Source;var desk=session.Studio;
+                    Check(desk.AwaitingChoice,"Recovered tape offers Bobby or manual editing");CaptureUI("v5_Bobby_Choice.png");
+                    Check(desk.ChooseEditing(false)&&!desk.AwaitingChoice&&desk.Episode.cuts.Count==1&&desk.Episode.cuts[0].reason=="Manual source selection","Manual choice creates an editable source shot");
+                    Check(desk.AutoEdit("Documentary"),"Manual editor can ask Bobby for a draft");var episode=desk.Episode;
                     Check(take.Reviewing&&take.ExternalPlayback,"Episode preview uses the isolated recorded world");
                     Check(take.Moments.Count>=2&&episode.Validate(take,out _),"Persisted evidence generates a valid EDL");
                     var again=BobbyEpisode.Build(take,"Documentary",session.BobbyLevel);Check(again.id==episode.id,"Same recorded inputs produce the same Bobby cut");
@@ -181,16 +188,34 @@ namespace SpookTuber.Editor
                 Check(File.ReadAllText(Path.Combine(recovery,"HospitalRun.json"))==damagedJson,"Recovery failure preserves the original files");Finish(null);
             }
         }
+        static void AutomaticTick(float dt)
+        {
+            if(stage==0&&dt>1){
+                session=RunSession.Current;var existing=File.ReadAllText(Path.Combine(QA,"bobby_career_path.txt"));var envelope=JsonUtility.FromJson<Envelope>(File.ReadAllText(Path.Combine(existing,"HospitalRun.json")));
+                var fixture=new AutoCareer{takes=JsonUtility.FromJson<AutoCareer>(envelope.payload).takes};string payload=JsonUtility.ToJson(fixture);career=Path.Combine(QA,"BobbyAutomatic-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(career);
+                File.WriteAllText(Path.Combine(career,"HospitalRun.json"),JsonUtility.ToJson(new Envelope{payload=payload,checksum=BobbyEpisode.Hash(payload)}));session.StorageDirectory=career;
+                Check(session.ReloadCareer()&&session.Publications.Count==0&&session.Credits==0,"Automatic path uses a separate unpaid career with real recorded source");Check(session.OpenStudio(),"Load recovered tape for Bobby automatic editing");Next();
+            }else if(stage==1&&dt>1&&session.Studio.IsOpen){
+                var desk=session.Studio;Check(desk.AwaitingChoice,"Automatic path starts with an explicit handoff choice");
+                string blocked=Path.Combine(career,"blocked-save");File.WriteAllText(blocked,"QA blocked write");session.StorageDirectory=blocked;
+                Check(!desk.ChooseEditing(true)&&desk.AwaitingChoice&&session.Credits==0&&session.Publications.Count==0,"Failed automatic upload keeps choice available and pays nothing");session.StorageDirectory=career;
+                Check(desk.ChooseEditing(true)&&!desk.AwaitingChoice&&session.Publications.Count==1,"One Bobby choice edits and uploads without a separate publish click");
+                var paid=session.Publications.Single();Check(session.Credits==paid.revenueMinor&&session.QuotaViews==paid.views,"Automatic release settles Credit and contract Views independently");Check(!desk.Source.Paused,"Bobby starts playback of the completed episode");Next();
+            }else if(stage==2&&dt>.5f){
+                Check(session.Studio.Playhead>0,"Automatic result plays the recorded episode");CaptureUI("v5_Bobby_Automatic.png");CaptureUI("v5_Bobby_16x10.png",1440,900);long credit=session.Credits,views=session.QuotaViews;
+                Check(!session.Studio.Publish()&&session.Credits==credit&&session.QuotaViews==views,"Automatic release cannot pay or fill quota twice");session.Studio.Close();Next();
+            }else if(stage==3&&dt>1&&session.Phase==RunSession.RunPhase.House){Check(session.ReloadCareer()&&session.Publications.Count==1&&session.QuotaViews==session.Publications[0].views,"Automatic episode and quota survive career reload");Finish(null);}
+        }
         static void CaptureLens(string name)
         {
             var camera=motor.mainCam.lens.GetComponent<Camera>();camera.Render();SaveImage(camera.targetTexture,name);
         }
-        static void CaptureUI(string name)
+        static void CaptureUI(string name,int width=1600,int height=900)
         {
             var canvas=session.Studio.GetComponentsInChildren<Canvas>().Single(c=>c.name=="BobbyWorkstation");
             foreach(var t in canvas.GetComponentsInChildren<Transform>(true))t.gameObject.layer=5;
             var camera=new GameObject("QA_Camera").AddComponent<Camera>();camera.enabled=false;camera.cullingMask=1<<5;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=Color.black;
-            var rt=new RenderTexture(1600,900,24);camera.targetTexture=rt;var scaler=canvas.GetComponent<CanvasScaler>();scaler.enabled=false;canvas.scaleFactor=1;canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=1;
+            var rt=new RenderTexture(width,height,24);camera.targetTexture=rt;var scaler=canvas.GetComponent<CanvasScaler>();scaler.enabled=false;canvas.scaleFactor=Mathf.Min(width/1600f,height/900f);canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=1;
             if(session.Studio.Source&&session.Studio.Source.ReviewCamera)session.Studio.Source.ReviewCamera.Render();
             foreach(var label in canvas.GetComponentsInChildren<Text>()){label.font.RequestCharactersInTexture(label.text,label.fontSize,label.fontStyle);label.SetAllDirty();}
             Canvas.ForceUpdateCanvases();camera.Render();SaveImage(rt,name);canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.worldCamera=null;scaler.enabled=true;camera.targetTexture=null;Object.Destroy(rt);Object.Destroy(camera.gameObject);
@@ -203,7 +228,7 @@ namespace SpookTuber.Editor
         static void Finish(string error)
         {
             SessionState.SetBool(Flag,false);EditorApplication.update-=Tick;Application.logMessageReceived-=Log;
-            File.WriteAllText(Path.Combine(QA,SessionState.GetBool(Flag+".Legacy",false)?"legacy_take_validation.txt":SessionState.GetBool(Flag+".Reload",false)?"bobby_reload_validation.txt":"bobby_playmode_validation.txt"),(error==null?"PASS":"FAIL")+"\n"+string.Join("\n",checks)+"\n"+error);
+            File.WriteAllText(Path.Combine(QA,SessionState.GetBool(Flag+".Automatic",false)?"v5_bobby_automatic.txt":SessionState.GetBool(Flag+".Legacy",false)?"legacy_take_validation.txt":SessionState.GetBool(Flag+".Reload",false)?"bobby_reload_validation.txt":"bobby_playmode_validation.txt"),(error==null?"PASS":"FAIL")+"\n"+string.Join("\n",checks)+"\n"+error);
             Debug.Log(error??"SPOOKTUBER_BOBBY_PASS");EditorApplication.Exit(error==null?0:1);
         }
     }

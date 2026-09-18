@@ -41,7 +41,7 @@ namespace SpookTuber.Editor
                 if(EditorApplication.timeSinceStartup-stamp<.4)return;
                 var item=motor.mainCam;var body=motor.GetComponent<CrewBody>();
                 if(stage==0){
-                    var cc=motor.GetComponent<CharacterController>();cc.enabled=false;motor.transform.position=new Vector3(-2.8f,.1f,-1.43f);cc.enabled=true;
+                    var cc=motor.GetComponent<CharacterController>();cc.enabled=false;motor.transform.position=new Vector3(0,.08f,-7);cc.enabled=true;motor.UpdateView();item.transform.position=motor.viewCamera.transform.position+motor.viewCamera.transform.forward*.7f;
                     Physics.SyncTransforms();if(!item.TryPickup(motor))throw new Exception("Repro setup could not pick up camera");
                     stage=1;stamp=EditorApplication.timeSinceStartup;
                 }else if(stage==1){

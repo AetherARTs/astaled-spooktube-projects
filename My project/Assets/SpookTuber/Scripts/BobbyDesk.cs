@@ -17,6 +17,7 @@ namespace SpookTuber
         public BobbyEpisode Episode {get;private set;}
         public float Playhead {get;private set;}
         public bool RawPlayback {get;private set;}
+        public bool AwaitingChoice {get;private set;}
         public CrewTake Source=>take;
         public string Message {get;private set;}="";
         RunSession session;
@@ -34,6 +35,7 @@ namespace SpookTuber
         public void Open(CrewTake source)
         {
             session=RunSession.Current;take=source;IsOpen=true;RawPlayback=false;Playhead=0;selected=0;
+            AwaitingChoice=take&&!session.Publications.Any(p=>p.episode.runId==take.RunId);
             undo.Clear();redo.Clear();Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
             if(take){
                 take.Paused=true;take.ExternalPlayback=true;
@@ -49,17 +51,18 @@ namespace SpookTuber
             if(take&&take.Duration<1.5f)Message="This tape is too short to cut. Record at least 1.5 seconds on the next take.";
             BuildUI();
         }
-        public void Close()
+        public void Close(bool returnHome=true)
         {
             if(!IsOpen)return;IsOpen=false;
             if(take)take.EndReview();
             if(canvasObject){canvasObject.SetActive(false);Destroy(canvasObject);}
             if(eventObject)Destroy(eventObject);canvasObject=null;eventObject=null;
-            Cursor.lockState=CursorLockMode.Locked;Cursor.visible=false;session.CloseStudio();
+            Cursor.lockState=CursorLockMode.Locked;Cursor.visible=false;if(returnHome)session.CloseStudio();
         }
         public bool SelectTake(RecoveredTake source)
         {
             if(!IsOpen||!take||!source.recovered)return false;
+            if(CrewTake.SceneForTake(source.path)!=UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)return session.SwitchStudioTake(source.path);
             take.EndReview();
             bool loaded=take.LoadTake(source.path);
             if(!take.BeginReview()){Message=take.Message;BuildUI();return false;}
@@ -67,11 +70,34 @@ namespace SpookTuber
             Open(take);return true;
         }
         static BobbyEpisode Copy(BobbyEpisode value)=>JsonUtility.FromJson<BobbyEpisode>(JsonUtility.ToJson(value));
+        public bool ChooseEditing(bool automatic)
+        {
+            if(!take||!AwaitingChoice)return false;
+            AwaitingChoice=false;
+            if(automatic){
+                if(!AutoEdit("Horror")||!Publish()){AwaitingChoice=true;BuildUI();return false;}
+                Seek(0);take.Paused=false;Message="Done. I cut and uploaded the episode. Let's watch it.";BuildUI();return true;
+            }
+            Episode=new BobbyEpisode{takeId=take.TakeId,runId=take.RunId,sourcePath=take.LastSavedPath,preset="Documentary",editorLevel=session.BobbyLevel};
+            AddManualCut(0);Message="Your edit / view the source, add shots, trim and reorder, then upload.";BuildUI();return true;
+        }
+        public bool AddManualCut(float sourceTime)
+        {
+            if(!take||Episode==null||!float.IsFinite(sourceTime))return false;
+            float start=Mathf.Clamp(sourceTime,0,take.Duration),end=Mathf.Min(take.Duration,start+8);
+            var cut=new EpisodeCut{start=start,end=end,reason="Manual source selection"};
+            var used=Episode.cuts.SelectMany(c=>c.EvidenceIds).ToHashSet();
+            var moments=take.Moments.Where(m=>!used.Contains(m.id)&&Mathf.Min(end,m.end)-Mathf.Max(start,m.start)>=.5f).Select(m=>m.id).ToArray();
+            if(moments.Length>0){cut.momentId=moments[0];cut.supportingIds=moments.Skip(1).ToArray();}
+            var candidate=Copy(Episode);candidate.cuts.Add(cut);
+            if(!candidate.Validate(take,out var reason)){Message=reason;BuildUI();return false;}
+            Remember();Episode=candidate;RawPlayback=false;selected=Episode.cuts.Count-1;Seek(Episode.Duration-(end-start));SaveEdit();BuildUI();return true;
+        }
         public bool AutoEdit(string preset)
         {
             if(!take)return false;
             Remember();Episode=BobbyEpisode.Build(take,preset,session.BobbyLevel);selected=0;RawPlayback=false;Seek(0);
-            Message="Bobby selected recorded moments with their surrounding footage.";SaveEdit();BuildUI();return true;
+            Message="Bobby selected recorded moments with their surrounding footage.";bool saved=SaveEdit();BuildUI();return saved;
         }
         void Remember(){if(Episode!=null){if(undo.Count>=20)undo.Clear();undo.Push(JsonUtility.ToJson(Episode));}redo.Clear();}
         bool SaveEdit()
@@ -111,6 +137,7 @@ namespace SpookTuber
             if(publication==null)return false;
             var source=session.Takes.FirstOrDefault(t=>t.id==publication.episode.takeId);
             if(source==null||source.id!=take.TakeId&&!SelectTake(source))return false;
+            if(!IsOpen)return true; // Selecting a source in an archived scene completes after the load.
             Episode=Copy(publication.episode);RawPlayback=false;take.Paused=true;Seek(0);Message="Playing the exact episode that was published.";BuildUI();return true;
         }
         void Update()
@@ -140,7 +167,7 @@ namespace SpookTuber
         }
         Text Label(string name,string value,float x,float y,float w,float h,int size=20,Color? color=null)
         {
-            var text=Rect(name,layout,x,y,w,h).gameObject.AddComponent<Text>();text.font=font;text.fontSize=size;text.color=color??ink;text.text=value;text.supportRichText=false;text.raycastTarget=false;text.horizontalOverflow=HorizontalWrapMode.Wrap;return text;
+            var text=Rect(name,layout,x,y,w,Mathf.Max(h,size*1.5f)).gameObject.AddComponent<Text>();text.font=size>=26?GameUi.Heading:font;text.fontSize=size;text.color=color??ink;text.text=value;text.supportRichText=false;text.raycastTarget=false;text.horizontalOverflow=HorizontalWrapMode.Wrap;return text;
         }
         Button Button(string name,string label,float x,float y,float w,Action action,bool enabled=true,int size=18,float height=46)
         {
@@ -154,7 +181,7 @@ namespace SpookTuber
         {
             string focus=EventSystem.current&&EventSystem.current.currentSelectedGameObject?EventSystem.current.currentSelectedGameObject.name:"Play";
             if(!canvasObject){
-                font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");canvasObject=new GameObject("BobbyWorkstation",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));canvasObject.transform.SetParent(transform,false);
+                font=GameUi.Body;canvasObject=new GameObject("BobbyWorkstation",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));canvasObject.transform.SetParent(transform,false);
                 var canvas=canvasObject.GetComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=100;
                 var scale=canvasObject.GetComponent<CanvasScaler>();scale.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scale.referenceResolution=new Vector2(1600,900);scale.screenMatchMode=CanvasScaler.ScreenMatchMode.Expand;
                 var backdrop=Rect("Backdrop",canvasObject.transform,0,0,0,0);backdrop.anchorMin=Vector2.zero;backdrop.anchorMax=Vector2.one;backdrop.offsetMin=backdrop.offsetMax=Vector2.zero;backdrop.gameObject.AddComponent<Image>().color=background;
@@ -163,9 +190,17 @@ namespace SpookTuber
             if(page){page.SetActive(false);Destroy(page);}buttons.Clear();
             layout=Rect("Workspace",canvasObject.transform,0,0,1600,900);layout.anchorMin=layout.anchorMax=layout.pivot=new Vector2(.5f,.5f);page=layout.gameObject;
             Label("Brand","SPOOKTUBER / PRODUCTION",24,24,530,34,28);
-            Label("Balance",$"TEAM  {session.TeamMoney/100m:0.00}    CREW  {session.PersonalMoney/100m:0.00}    SUBSCRIBERS  {session.Subscribers:N0}",590,28,750,32,21,accent);
-            Button("Close","BACK TO HOUSE",1380,22,196,Close);
+            Label("Balance",$"CREDIT  {session.Credits/100m:0.00}     {session.QuotaStatus}",590,28,750,32,19,accent);
+            Button("Close","BACK TO HOUSE",1380,22,196,()=>Close());
             Box("HeaderLine",24,79,1552,2,new Color(.23f,.28f,.28f));
+            if(AwaitingChoice){
+                Label("Handoff","THE TAPE IS HOME.",330,195,940,65,42,accent);
+                Label("HandoffNote","Who should edit this episode?\n\nBobby selects recorded moments and uploads automatically.\nManual editing lets you choose shots, trim and reorder before uploading.",330,290,940,180,25);
+                Button("Automatic","BOBBY / EDIT + UPLOAD",330,530,440,()=>ChooseEditing(true),take&&take.Duration>=1.5f,25,80);
+                Button("Manual","I WILL EDIT IT",800,530,440,()=>ChooseEditing(false),take&&take.Duration>=1.5f,25,80);
+                Label("SourceInfo",$"MAIN-01  /  {take.Duration:0.0}s  /  {take.Moments.Count} confirmed moments\n"+(take.Duration<1.5f?"Record at least 1.5 seconds to edit this tape.":Message),330,668,940,100,21,muted);
+                if(EventSystem.current)EventSystem.current.SetSelectedGameObject((buttons.FirstOrDefault(b=>b.name=="Automatic"&&b.IsInteractable())??buttons.First(b=>b.IsInteractable())).gameObject);return;
+            }
             Label("Library","RECOVERED TAPES",24,100,240,28,22);
             Label("LibraryNote","One episode per expedition\nTeam 60% / Crew 40%",24,136,240,52,17,muted);
             var library=session.Takes.Where(t=>t.recovered).Reverse().ToArray();int pages=Mathf.Max(1,(library.Length+5)/6);libraryPage=Mathf.Clamp(libraryPage,0,pages-1);
@@ -189,7 +224,7 @@ namespace SpookTuber
             Button("SourceToggle",RawPlayback?"VIEW EPISODE":"VIEW SOURCE",622,634,178,()=>{RawPlayback=!RawPlayback;take.Paused=true;Seek(0);BuildUI();},take&&Episode!=null);
             Button("Undo","UNDO",814,634,100,()=>Undo(),undo.Count>0);
             Button("Redo","REDO",926,634,100,()=>Undo(true),redo.Count>0);
-            Button("Save","SAVE CUT",1038,634,114,()=>{if(SaveEdit())Message="Draft saved";BuildUI();},take&&Episode!=null);
+            Button("Save",RawPlayback?"ADD SHOT":"SAVE CUT",1038,634,114,()=>{if(RawPlayback)AddManualCut(Playhead);else if(SaveEdit())Message="Draft saved";BuildUI();},take&&Episode!=null);
             Label("TimelineHeading","EPISODE CUTS / select a shot to trim or reorder",288,696,864,26,18,muted);
             if(Episode!=null)for(int i=0;i<Episode.cuts.Count;i++){
                 int index=i;var cut=Episode.cuts[i];string kind=cut.momentId==""?"Unmarked":take.Moments.First(m=>m.id==cut.momentId).kind;
@@ -213,17 +248,17 @@ namespace SpookTuber
             bool valid=take&&Episode!=null&&Episode.Validate(take,out _);
             Button("Upload",published!=null?"ALREADY PUBLISHED":"UPLOAD EPISODE",1176,282,400,()=>Publish(),valid&&published==null,22,54);
             if(published!=null&&published.episode.id==Episode.id){
-                Label("Performance",$"{published.views:N0} VIEWS\n+{published.subscribers:N0} SUBSCRIBERS\nREVENUE  {published.revenueMinor/100m:0.00}\nTEAM +{published.teamMinor/100m:0.00} / CREW +{published.personalMinor/100m:0.00}",1176,364,400,132,24,accent);
+                Label("Performance",$"{published.views:N0} VIEWS\n+{published.subscribers:N0} SUBSCRIBERS\nCREDIT +{published.revenueMinor/100m:0.00}\nDAY {session.QuotaDay}/3 / {session.QuotaViews:N0}/{session.QuotaTarget:N0} VIEWS",1176,364,400,132,24,accent);
                 Label("AudienceHeading","AUDIENCE / FROM YOUR EPISODE",1176,518,400,30,18,muted);
                 Label("Audience",string.Join("\n\n",published.comments.Take(3)),1176,562,400,178,20);
             }else if(published!=null){
                 Label("AlreadyReleased","This expedition already has a published episode.\n\nThis draft has different cuts. The published episode and its audience response are kept in the archive.",1176,367,400,220,22);
                 Button("ViewPublished","VIEW PUBLISHED EPISODE",1176,630,400,()=>ViewPublished(),true,20,54);
             }else{
-                Label("BeforeUpload","Preview your cut, then release it on SpookTuber TV.\n\nViews depend on what the camera could actually see.\n\nPayment is saved once. Previewing earns nothing.",1176,367,400,230,22);
+                Label("BeforeUpload","Preview your cut, then release it on SpookTuber TV.\n\nViews depend on what the camera could actually see.\n\nEach expedition pays once.",1176,367,400,250,22);
                 Label("FilmedFacts",take?$"CONFIRMED MOMENTS  {take.Moments.Count}\nEPISODE LENGTH  {Episode?.Duration:0.0}s":"NO RECOVERED FOOTAGE",1176,634,400,62,20,accent);
             }
-            Button("Upgrade",session.BobbyLevel>0?"CONTEXT EDITOR INSTALLED":"UPGRADE BOBBY / 25.00 TEAM",1176,766,400,()=>{session.UpgradeBobby();Message=session.Notice;BuildUI();},session.BobbyLevel==0,19,54);
+            Button("Upgrade",session.BobbyLevel>0?"CONTEXT EDITOR INSTALLED":"UPGRADE BOBBY / 25.00 CREDIT",1176,766,400,()=>{session.UpgradeBobby();Message=session.Notice;BuildUI();},session.BobbyLevel==0,19,54);
             Label("UpgradeInfo","More context, stronger framing selection.\nRe-cut a tape to use the upgrade.",1176,841,400,50,17,muted);
             var target=buttons.FirstOrDefault(b=>b.name==focus&&b.IsInteractable())??buttons.FirstOrDefault(b=>b.IsInteractable());if(target&&EventSystem.current)EventSystem.current.SetSelectedGameObject(target.gameObject);
         }
