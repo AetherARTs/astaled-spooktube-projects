@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Rendering.Universal;
 
 namespace SpookTuber
 {
@@ -13,8 +14,8 @@ namespace SpookTuber
     public sealed class CrewTake : MonoBehaviour
     {
         const string Format="SPOOKTAKE-3";
-        static string SceneIdentity=>SceneManager.GetActiveScene().name.Replace("_v4","");
-        static string Content=>SceneManager.GetActiveScene().name.EndsWith("_v4",StringComparison.Ordinal)?(SceneIdentity=="Hospital"?"hospital-crew-v1":"production-house-crew-v2"):(SceneIdentity=="Hospital"?"hospital-solo-v5":"production-house-solo-v5");
+        static string SceneIdentity=>SceneManager.GetActiveScene().name.Replace("_v4","").Replace("_v5","");
+        static string Content=>SceneManager.GetActiveScene().name.EndsWith("_v4",StringComparison.Ordinal)?(SceneIdentity=="Hospital"?"hospital-crew-v1":"production-house-crew-v2"):(SceneIdentity=="Hospital"?"hospital-solo-v":"production-house-solo-v")+(SceneManager.GetActiveScene().name.EndsWith("_v5",StringComparison.Ordinal)?"5":"6");
         public static string SceneForTake(string path)
         {
             try{
@@ -23,7 +24,8 @@ namespace SpookTuber
                 string content=reader.ReadString();string scene=reader.ReadString();
                 if(scene!="Hospital"&&scene!="ProductionHouse")return null;
                 if(content=="hospital-crew-v1"&&scene=="Hospital"||content=="production-house-crew-v2"&&scene=="ProductionHouse")return scene+"_v4";
-                return content=="hospital-solo-v5"&&scene=="Hospital"||content=="production-house-solo-v5"&&scene=="ProductionHouse"?scene:null;
+                if(content=="hospital-solo-v5"&&scene=="Hospital"||content=="production-house-solo-v5"&&scene=="ProductionHouse")return scene+"_v5";
+                return content=="hospital-solo-v6"&&scene=="Hospital"||content=="production-house-solo-v6"&&scene=="ProductionHouse"?scene:null;
             }catch(Exception e) when(e is IOException||e is UnauthorizedAccessException||e is FormatException){return null;}
         }
         // ponytail: 60-second local takes; chunk streaming is required before long multi-camera runs.
@@ -231,10 +233,12 @@ namespace SpookTuber
                     go.AddComponent<MeshFilter>().sharedMesh=mesh.sharedMesh;
                     ghostRenderers[i]=go.AddComponent<MeshRenderer>();ghostRenderers[i].sharedMaterials=renderers[i].sharedMaterials;
                 }
+                if(ghostRenderers[i])ghostRenderers[i].renderingLayerMask=renderers[i].renderingLayerMask<<2;
                 if(lights[i]){
                     var live=lights[i];var clone=go.AddComponent<Light>();clone.type=live.type;clone.color=live.color;clone.intensity=live.intensity;
                     clone.range=live.range;clone.spotAngle=live.spotAngle;clone.innerSpotAngle=live.innerSpotAngle;clone.shadows=live.shadows;
                     clone.shadowBias=live.shadowBias;clone.shadowNormalBias=live.shadowNormalBias;clone.cullingMask=1<<9;ghostLights[i]=clone;
+                    clone.GetUniversalAdditionalLightData().renderingLayers=(uint)live.GetUniversalAdditionalLightData().renderingLayers<<2;
                 }
                 if(sounds[i]&&sounds[i].clip){
                     var live=sounds[i];var clone=go.AddComponent<AudioSource>();clone.clip=live.clip;clone.volume=live.volume;clone.pitch=live.pitch;

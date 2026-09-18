@@ -53,7 +53,7 @@ namespace SpookTuber
         }
         public void Close(bool returnHome=true)
         {
-            if(!IsOpen)return;IsOpen=false;
+            if(!IsOpen)return;GameUi.ConsumeInput();IsOpen=false;
             if(take)take.EndReview();
             if(canvasObject){canvasObject.SetActive(false);Destroy(canvasObject);}
             if(eventObject)Destroy(eventObject);canvasObject=null;eventObject=null;

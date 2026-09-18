@@ -24,6 +24,7 @@ namespace SpookTuber
             foreach(var shape in shapes)shape.enabled=false;
             transform.SetParent(owner.Motor.viewCamera.transform,false);transform.localScale=Vector3.one;
             foreach(var node in GetComponentsInChildren<Transform>(true))node.gameObject.layer=8;
+            foreach(var visual in visuals)if(visual)visual.renderingLayerMask=1;
         }
         internal void Present(bool visible)
         {
@@ -37,7 +38,7 @@ namespace SpookTuber
             if(workLight)workLight.enabled=false;
             transform.SetParent(null,true);transform.SetPositionAndRotation(position,Owner.Motor.viewCamera.transform.rotation);Owner=null;
             foreach(var node in GetComponentsInChildren<Transform>(true))node.gameObject.layer=0;
-            foreach(var visual in visuals)if(visual)visual.enabled=true;
+            foreach(var visual in visuals)if(visual){visual.enabled=true;visual.renderingLayerMask=3;}
             foreach(var shape in shapes)shape.enabled=true;
             Physics.SyncTransforms();physicsBody.isKinematic=false;physicsBody.interpolation=RigidbodyInterpolation.Interpolate;
             physicsBody.linearVelocity=velocity;

@@ -18,6 +18,9 @@ Crew returns with the recorded tape
 Extraction recovers the tape in the career catalog
 Mission completion alone awards no episode money
 Bobby loads recovered footage across the scene boundary
+Recovered tape offers Bobby or manual editing
+Manual choice creates an editable source shot
+Manual editor can ask Bobby for a draft
 Episode preview uses the isolated recorded world
 Persisted evidence generates a valid EDL
 Same recorded inputs produce the same Bobby cut

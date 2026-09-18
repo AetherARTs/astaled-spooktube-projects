@@ -1,0 +1,9 @@
+PASS
+Load isolated career 1/3
+Pickup Camera / Picked up MainCam
+Native keyboard Enter activates focused phone app
+Escape returns to apps
+Native keyboard opens microphone device list
+First Escape dismisses device list and keeps Settings / open=True app=Settings popup=False
+Second Escape returns from Settings to apps
+Third Escape stows phone

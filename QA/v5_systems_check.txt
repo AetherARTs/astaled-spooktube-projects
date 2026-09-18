@@ -1,0 +1,63 @@
+PASS
+Load isolated career 1/3
+Approved complete player scaled to 88 percent
+Bobby and supply NPC occupy the home
+Credit buys work light
+Duplicate purchase rejected
+Credit buys noisemaker
+Sell refunds half Credit without spending Views
+Failed save neither charges nor grants gear
+Retry purchase after save failure
+Pickup Camera / Picked up MainCam
+Pickup GravityGlove / Picked up Gravity Glove
+Pickup ProductionLight / Picked up Work Light
+Exactly three slots; fourth pickup refused
+Number key selects camera
+RMB smoothly brings the LCD close
+Held camera follows view orientation
+New scene records without exhausting track budget
+Switching gear saves and stows the running camera
+Physical phone suspends held tools and world actions
+Phone has a visible keyboard focus target
+Phone focus blocks movement, recording and drop
+Phone opens Controls
+Phone opens Mission
+Phone opens Map
+Phone opens Equipment
+Phone opens Harmony
+Phone opens Supply
+Phone opens Settings
+Escape returns app to launcher
+Escape stows phone and restores tools
+Microphone RMS measures real sample amplitude and rejects NaN
+Voice threshold dispatches audible world noise; silence does not
+Sprint travels substantially faster than walking
+Sprint plus C enters a physical crouch slide
+Space jumps off the floor
+Opening phone in air still obeys gravity
+Crouch lowers view and collision capsule
+Low ceiling prevents uncrouching into solid geometry
+X leans around the right edge
+Reachable low ledge starts collision checked mantle
+Mantle finishes standing on ledge
+Gravity glove acquires an eligible Rigidbody
+Glove pulls through real physics and consumes energy
+RMB releases held prop with a physical impulse
+Q returns selected item to physics world
+Load isolated career 3/3
+Missed day-three View quota blocks the next expedition
+Retry starts a new contract and preserves Credit
+Load isolated career 3/3
+Completed View quota allows the next contract
+New three-day contract increases target without converting Credit
+Expanded hospital has a walkable AI spawn
+Hospital includes distinct clinical wings
+Sliding door fully retracts and clears navigation
+Open sliding door has physical walking clearance
+Door refuses to crush a crew member standing in the opening
+Closed sliding door restores blocking collider and navigation
+Actual world sound updates AI investigation target
+RV location follows the expanded exterior
+Extraction settles day once and returns to home
+Next expedition starts day two
+Quota advances by one day per completed expedition

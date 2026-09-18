@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/SpookTuber/Scenes/MainMenu.unity
+    guid: 21a86d52259d14340a43871d92ff555a
+  - enabled: 1
+    path: Assets/SpookTuber/Scenes/Loading.unity
+    guid: a19d38610883c0140a8c8da8c9649638
+  - enabled: 1
     path: Assets/SpookTuber/Scenes/ProductionHouse.unity
     guid: 5015edc186a04334aa3aa64f1d44a977
   - enabled: 1
@@ -17,6 +23,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SpookTuber/Scenes/Legacy/Hospital_v4.unity
     guid: 5e0c1b208e8229943926201a88648fa6
+  - enabled: 1
+    path: Assets/SpookTuber/Scenes/Legacy/ProductionHouse_v5.unity
+    guid: 0a4d478e2cdcf704e945c771ebeb0f22
+  - enabled: 1
+    path: Assets/SpookTuber/Scenes/Legacy/Hospital_v5.unity
+    guid: 78e9985ce12eab243bd6356ea2bb790c
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05

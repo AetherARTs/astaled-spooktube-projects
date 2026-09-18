@@ -21,7 +21,7 @@ namespace SpookTuber.Editor
         static string QA=>Path.GetFullPath(Path.Combine(Application.dataPath,"../../QA"));
         static readonly List<string> checks=new();
         static IEnumerator<float> routine;
-        static float resume;
+        static double resume;
         static double started;
         static Keyboard keyboard;
         static Mouse mouse;
@@ -120,7 +120,8 @@ namespace SpookTuber.Editor
             Place(new Vector3(0,.08f,8));Capture("v5_Play_Hospital.png");
             var agent=surgeon.GetComponent<NavMeshAgent>();agent.Warp(new Vector3(-8.5f,.08f,30));surgeon.enabled=true;WorldNoise.Emit(new Vector3(-8.5f,1,33),10,"QA impact");yield return .2f;
             Check(Vector3.Distance(surgeon.LastKnownPosition,new Vector3(-8.5f,1,33))<.2f,"Actual world sound updates AI investigation target");surgeon.enabled=false;
-            Place(session.RVPosition+Vector3.forward*2);Check(session.BeginExtraction(),"RV location follows the expanded exterior");yield return 4;
+            Place(session.RVPosition+Vector3.forward*2);Check(session.BeginExtraction(),"RV location follows the expanded exterior");
+            double extractionDeadline=EditorApplication.timeSinceStartup+15;while(session.Phase!=RunSession.RunPhase.House&&EditorApplication.timeSinceStartup<extractionDeadline)yield return .1f;
             Check(session.Phase==RunSession.RunPhase.House&&session.DayFinished&&session.QuotaDay==1,"Extraction settles day once and returns to home");Check(session.Depart(),"Next expedition starts day two");yield return 3;Check(session.QuotaDay==2,"Quota advances by one day per completed expedition");
         }
         static IEnumerator<float> Poses()
@@ -142,7 +143,7 @@ namespace SpookTuber.Editor
             try{
                 if(routine==null){started=EditorApplication.timeSinceStartup;Application.runInBackground=true;InputSystem.settings=Object.Instantiate(InputSystem.settings);InputSystem.settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;keyboard=InputSystem.AddDevice<Keyboard>();mouse=InputSystem.AddDevice<Mouse>();routine=SessionState.GetBool(Flag+".UI",false)?Interface():SessionState.GetBool(Flag+".Hardware",false)?Sensors():SessionState.GetBool(Flag+".Visual",false)?Poses():Exercise();}
                 if(EditorApplication.timeSinceStartup-started>300)throw new Exception("Timed out after "+checks.LastOrDefault());
-                if(Time.time<resume)return;if(routine.MoveNext())resume=Time.time+routine.Current;else Finish(null);
+                if(EditorApplication.timeSinceStartup<resume)return;if(routine.MoveNext())resume=EditorApplication.timeSinceStartup+routine.Current;else Finish(null);
             }catch(Exception e){Finish(e.ToString());}
         }
         static IEnumerator<float> Interface()

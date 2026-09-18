@@ -3,6 +3,10 @@
 Blender source: ArtSource/Player/CHR_Player_Master.blend — Blender 5.2.2 LTS.
 Unity scene: My project/Assets/SpookTuber/Scenes/ProductionHouse.unity — Unity 6000.3.18f1, URP 17.3.0.
 
+## Current integration — revision 6
+
+The approved player geometry and rig are unchanged; the playable prefab is uniformly scaled to 88% (approximately 1.59 m including antennas). The face remains blank. MainCam now uses `ArtSource/Environment/EQP_MainCam_Master.blend` and `EQP_MainCam_Detailed.fbx` (35,800 triangles), with the existing grip, carry, recording and live LCD systems. BuildEquipment.Build updates only the camera and archives old scene camera geometry for legacy footage.
+
 ## Character revision 2
 - Blank black screen. The eye meshes, amber emission and Blink blendshape/runtime animation were removed at the user's request. LED expressions are intentionally not implemented yet.
 - Rebuilt hoodie sleeves with smoother shoulder transitions, shaped elbow folds, gathered wrists, ribbed cuffs and edge stitching. Softened the torso, folded collar/hood opening and cargo silhouette.

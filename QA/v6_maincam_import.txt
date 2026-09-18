@@ -1,0 +1,2 @@
+PASS / authored camera mesh, live LCD preserved, old camera unpacked in v4/v5 scenes
+Imported lens center before alignment: (0.00, 0.00, 0.22)

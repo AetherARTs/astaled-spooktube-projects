@@ -1,0 +1,1 @@
+PASS / visible white sign pixels 9869; opaque equipment occludes all sign pixels 0

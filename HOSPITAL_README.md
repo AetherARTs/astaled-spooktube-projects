@@ -1,47 +1,25 @@
-# Hospital run — 18 September 2026
+# Hospital and home — revision 5
 
-This delivery connects a playable solo hospital run to the production house. It is part of the production project, not the completed GDD/CORE scope.
+See [HOW_TO_PLAY_TH.md](HOW_TO_PLAY_TH.md) for controls and [PRODUCTION_README.md](PRODUCTION_README.md) for the connected production loop, economy, validation commands and limits.
 
-## Play
+The current authored hospital is 37 × 68 m (2,516 m²), with a 47 × 24 m forecourt, eight clinical rooms, a 5 m central corridor and 4 m outer loop passages. Rooms include wards, theatre, radiology, isolation, pharmacy, records and morgue. Sliding doors move sideways into pockets, clear the NavMesh when open, and prevent crushing actors/props. Low marked ledges support mantle; a complete second storey and full vertical routes are not delivered.
 
-Run `D:/Projects/SPOOKYTUBER/Builds/Windows/SpookTuber.exe`.
+The home is 30 × 30 m with a 16 × 14 m garage. Furnished living/studio/equipment spaces connect to Bobby, the supply clerk, wardrobe and RV departure. The original player stays unchanged in mesh/rig design and uses an overall 0.88 scale.
 
-1. Walk to the apartment entry door and press **E** to depart. The MainCam and selected outfit accompany the crew.
-2. **WASD** move, mouse look, **Shift** sprint, **Space** jump, **F** shoulder light. **E** opens/closes doors or picks up the MainCam.
-3. Frame using the MainCam's live LCD; **R** records/stops, **Q** puts it down. A dropped camera continues recording. Each take currently holds up to 60 seconds.
-4. The Surgeon patrols, investigates actual movement/door/impact noise, warns before pursuing and winds up before striking. Break sight lines and use doors to gain time.
-5. Return to the orange rear panel on the RV and press **E**. Departure takes three seconds; walking away cancels it. Footage is saved before leaving. Basic gear is recovered even if dropped.
-6. Back home, use the desk monitor for **Bobby / Edit & Release**: preview an automatic cut, trim/reorder it, upload it in the game and buy the context-editor upgrade. See `PRODUCTION_README.md`. **P** retains raw-take review; **Space** pauses, arrows scrub, **P** closes. Review does not run AI or grant completion again.
+## Editable sources
 
-In solo play, a downed crew member gets a brief detached-head interval, then cloud recovery returns them home. **Esc** releases the pointer; **Alt+F4** closes the executable.
+- `ArtSource/Hospital/Hospital_AssetLibrary.blend`: existing medical kit, Surgeon and RV.
+- `ArtSource/Environment/Solo_Environment_Library.blend`: 34 added environment/equipment/NPC assets.
+- `ArtSource/Environment/build_environment.py` and `build_materials.py`: original Blender models and 21 original 1K material maps.
+- `ArtSource/asset_tools.py`: shared Blender mesh/UV/export helpers.
+- `My project/Assets/SpookTuber/Scripts/Editor/BuildSolo.cs`: current scene assembly, materials, routes and scene capture.
+- `My project/Assets/SpookTuber/Scenes/ProductionHouse.unity` and `Hospital.unity`: playable current scenes.
+- `Scenes/Legacy/*_v4.unity`: archived bindings for existing recorded footage.
 
-## Source
+BuildSolo rebuilds its named generated assets/scenes. Preserve manual variants before rerunning. BuildHospital remains the older layout builder, not the current scene-delivery command. Layer 8 is local crew/held gear; layer 9 is replay; layer 10 is the Surgeon.
 
-- `ArtSource/Hospital/Hospital_AssetLibrary.blend`: editable kit, Surgeon rig and production van.
-- `ArtSource/Hospital/build_hospital.py`: native Blender geometry, FBX exports, original mechanical WAV cues and visual validation renders.
-- `ArtSource/Hospital/build_surfaces.py`: original deterministic wear/fabric textures.
-- `My project/Assets/SpookTuber/Scenes/ProductionHouse.unity` and `Hospital.unity`: connected scenes.
-- `My project/Assets/SpookTuber/Scripts/Editor/BuildHospital.cs`: assembles the authored layout, bakes navigation and checks each room route.
+## Scope and evidence
 
-The kit has 21 FBX assets. Hospital contains six medical rooms, connecting passages, a main corridor and the RV forecourt. This is a fixed authored layout with alternate routes, not procedural generation. Keep manual scene/mesh variants separate before running the generators, which rebuild their named outputs.
+Revision-5 system and Bobby checks exercise actual input, physical props, door clearance/navigation, real recording/extraction, editing, payment and save recovery. `QA/v5_scene_build.txt`, `v5_systems_check.txt`, `bobby_playmode_validation.txt` and the current build/runtime reports give the results. Older test totals remain historical.
 
-Layer 8 is the local crew/held gear, layer 9 the isolated replay, layer 10 the Surgeon. The player's display stays blank black. LED expressions remain deferred.
-
-## Persistence and checks
-
-The executable stores takes under `Application.persistentDataPath/Takes` and the career in `HospitalRun.json`. Both publish a flushed temporary file only after a successful write. The career retains a checksum-verified backup, revision and reward ledger. Failed footage writes retain recorded frames and prevent leaving; **R** retries while holding the camera. Game audio and filmed evidence are recorded; microphone audio is not captured.
-
-With Unity 6000.3.18f1 closed for the chosen test project, run these via `-batchmode -projectPath "<project>" -executeMethod SpookTuber.Editor.<method> -logFile "<log>"`:
-
-- `BuildCrew.Build`, then `BuildHospital.Build`: regenerate/import and validate assets.
-- `CrewPlayCheck.Run`, then `CrewPlayCheck.RunReload`: character, camera, persistence and fresh-process replay checks.
-- `HospitalPlayCheck.Run`, then `HospitalPlayCheck.RunReload`: mission lifecycle, doors, perception, extraction, replay isolation, recovery and sound persistence.
-- `HospitalPlayCheck.RunDoor`: the Surgeon reaches, forces and navigates through a closed door after a warning delay.
-- `BobbyPlayCheck.Run` and `BobbyPlayCheck.RunReload`: footage evidence, actual episode playback, editing, upload/payment, purchase persistence and save recovery.
-- `CrewPlayCheck.BuildPlayer`: build the enabled Windows scenes.
-
-Actual results and application renders are in `QA`. Editor Search can emit an unrelated startup indexing exception; game assertions and build results are reported separately.
-
-## Remaining GDD work
-
-The first local evidence/edit/upload/progression loop is implemented; its exact limits and initial tuning are in `PRODUCTION_README.md`. Multiplayer, Peeker/Clinger, procedural layouts, multi-camera, cross-take editing, long-run recording and the wider economy/content systems remain. Assets still need further art/animation/LOD work and performance measurement on target hardware.
+World noise includes real microphone levels, footsteps, landing, doors and impacts. The mic is used for AI detection; recorded clips contain game audio, not recorded speech. Noise delivery is validated separately from human speech calibration. Presentation remains stylized and needs further art, performance and encounter work to reach the user's near-realistic target. Co-op is deferred; the active target is enjoyable Solo play.

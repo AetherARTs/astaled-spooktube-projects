@@ -1,0 +1,2 @@
+﻿FAIL reproduced: SoloSystemsCheck reached Escape returns app to launcher; second Escape closed phone and opened GameShell pause in the same frame. Time.time stopped; test interrupted before its 300-second timeout. Fix must consume close input across UI and world callers.
+RESOLVED / shared GameUi.ConsumeInput prevents the close event reaching world input. SoloSystemsCheck completed all 62 checks after the fix; the test clock now uses Editor realtime so a pause regression reports a failure instead of stalling.

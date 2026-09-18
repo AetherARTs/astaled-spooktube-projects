@@ -1,0 +1,19 @@
+PASS
+Title opens before creating a career or mission
+Menu FBX floor keeps Blender axis conversion
+Title has one presentation camera
+Enter opens Options
+Volume button applies real audio preference
+Adjusting an option preserves keyboard focus
+Escape returns Options to title
+Controls opens from title
+Play passes through the real Loading scene into home
+Shell test uses an isolated career
+Escape opens a real solo pause menu
+Pause blocks movement and recording input
+Paused microphone/world noise does not alert AI
+Resume restores simulation and audio
+Returning to title explains the save/expedition consequence
+Save failure keeps player in the current scene
+Saved return restores title and removes old session
+Return to title persisted the isolated career

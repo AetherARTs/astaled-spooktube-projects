@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace SpookTuber
 {
@@ -32,6 +33,8 @@ namespace SpookTuber
                 LivePreview=new RenderTexture(320,180,16);LivePreview.Create();
                 previewCamera=lens.gameObject.AddComponent<Camera>();previewCamera.enabled=false;previewCamera.fieldOfView=65;previewCamera.nearClipPlane=.035f;
                 previewCamera.cullingMask=~(1<<9);previewCamera.targetTexture=LivePreview;previewCamera.clearFlags=CameraClearFlags.SolidColor;previewCamera.backgroundColor=RenderSettings.fog?RenderSettings.fogColor:Color.black;
+                // The 320x180 equipment monitor does not need a second set of world shadow maps.
+                previewCamera.GetUniversalAdditionalCameraData().renderShadows=false;
                 screenMaterial=new Material(screen.sharedMaterial);screenMaterial.SetTexture("_BaseMap",LivePreview);
                 // The box's rear face maps both UV axes opposite to the LCD viewing direction.
                 screenMaterial.SetTextureScale("_BaseMap",new Vector2(-1,-1));screenMaterial.SetTextureOffset("_BaseMap",Vector2.one);screen.sharedMaterial=screenMaterial;

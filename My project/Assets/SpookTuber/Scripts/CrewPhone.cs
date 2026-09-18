@@ -88,7 +88,7 @@ namespace SpookTuber
             if(!EventSystem.current){inputObject=new GameObject("PhoneInput",typeof(EventSystem),typeof(InputSystemUIInputModule));inputObject.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();}
             CurrentApp=app;BuildPage();
         }
-        public void Close(){if(!IsOpen)return;IsOpen=false;device.SetActive(false);inventory.Suspend(false);motor.SetCursor(true);if(inputObject)Destroy(inputObject);inputObject=null;}
+        public void Close(){if(!IsOpen)return;GameUi.ConsumeInput();IsOpen=false;device.SetActive(false);inventory.Suspend(false);motor.SetCursor(true);if(inputObject)Destroy(inputObject);inputObject=null;}
         public void Show(string app){if(Battery<=0&&app!="Settings"&&app!="Home"&&app!="Controls"){Message="Battery empty / recharge at the RV";Refresh();return;}CurrentApp=app;Message="";BuildPage();}
         RectTransform Rect(string name,Transform parent,float x,float y,float w,float h)
         {
@@ -197,7 +197,7 @@ namespace SpookTuber
             foreach(var zone in discovered){if(!zone)continue;var p=Project(zone.transform.position);var rect=Rect(zone.label,mapContent,p.x-zone.size.x*factor/2,p.y-zone.size.z*factor/2,zone.size.x*factor,zone.size.z*factor);rect.gameObject.AddComponent<Image>().color=new Color(.14f,.24f,.25f);
                 if(rect.sizeDelta.x>60&&rect.sizeDelta.y>42){var label=Rect("AreaName",rect,3,3,rect.sizeDelta.x-6,rect.sizeDelta.y-6).gameObject.AddComponent<Text>();label.font=font;label.fontSize=17;label.color=muted;label.text=zone.label;label.alignment=TextAnchor.MiddleCenter;label.raycastTarget=false;}}
             void Marker(string name,Vector3 position,Color color){var p=Project(position);var label=Rect(name,mapContent,p.x-25,p.y-26,50,52).gameObject.AddComponent<Text>();label.font=font;label.fontSize=32;label.color=color;label.text=name;label.alignment=TextAnchor.MiddleCenter;label.raycastTarget=false;}
-            Marker("+",transform.position,accent);if(motor.mainCam)Marker("C",motor.mainCam.transform.position,ink);if(RunSession.Current&&RunSession.Current.Phase!=RunSession.RunPhase.House)Marker("R",RunSession.Current.RVPosition,new Color(.4f,.8f,.7f));
+            if(motor.mainCam&&motor.mainCam.GetComponent<CarryItem>().Owner!=inventory)Marker("C",motor.mainCam.transform.position,ink);Marker("+",transform.position,accent);if(RunSession.Current&&RunSession.Current.Phase!=RunSession.RunPhase.House)Marker("R",RunSession.Current.RVPosition,new Color(.4f,.8f,.7f));
         }
         void Update()
         {

@@ -1,0 +1,4 @@
+PASS
+Windows microphone opens / MIC STARTING
+Physical microphone capture buffer advances
+Actual audio samples reach the live microphone meter

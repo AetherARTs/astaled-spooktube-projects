@@ -1,0 +1,9 @@
+PASS
+NVIDIA GeForce GTX 1050 Ti / 1600x900 / Direct3D11
+Home: 757 frames, median 11.8 ms, p95 13.5 ms; stationary view, warm sample
+Standalone Surgeon attached to the hospital NavMesh
+Hospital / camera held and recording: 167 frames, median 60.1 ms, p95 65.4 ms; stationary view, warm sample
+Standalone hospital take saved: 11576927 bytes
+Probe / recording off: 84 frames, median 61.1 ms, p95 65.7 ms; stationary view, warm sample
+Probe / LCD off: 138 frames, median 36.1 ms, p95 41.3 ms; stationary view, warm sample
+Probe / shadows off: 350 frames, median 14.8 ms, p95 16.4 ms; stationary view, warm sample

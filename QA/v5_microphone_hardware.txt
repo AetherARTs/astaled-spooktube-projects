@@ -1,0 +1,6 @@
+Device: Microphone (Maono DM40 Wireless Mic)
+Status: MIC LIVE
+Sample cursor: 5760
+Current RMS: 6.206947E-05
+Audio stays in a one-second RAM buffer; no microphone recording file written.
+Human speech at the user's chosen gain still needs playtest calibration.

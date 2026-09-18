@@ -1,0 +1,5 @@
+PASS
+NVIDIA GeForce GTX 1050 Ti / 1600x900 / Direct3D11
+Home: 662 frames, median 12.5 ms, p95 19.1 ms; stationary view, warm sample
+Hospital / camera held and recording: 151 frames, median 68.4 ms, p95 80.8 ms; stationary view, warm sample
+Standalone hospital take saved: 10295787 bytes

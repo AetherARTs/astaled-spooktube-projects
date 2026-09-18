@@ -72,7 +72,7 @@ namespace SpookTuber
         }
         void Start(){StartCoroutine(BindScene());}
         void OnDestroy(){if(Current==this){Current=null;SceneManager.sceneLoaded-=SceneLoaded;}}
-        void SceneLoaded(Scene scene,LoadSceneMode mode){StartCoroutine(BindScene());}
+        void SceneLoaded(Scene scene,LoadSceneMode mode){if(scene.name=="MainMenu"){Destroy(gameObject);return;}StartCoroutine(BindScene());}
         IEnumerator BindScene()
         {
             // CrewBody creates the stable detached-head track in Awake.
@@ -105,7 +105,7 @@ namespace SpookTuber
             }
             next.runCycle=next.quotaCycle;
             if(!SaveJournal(next))return false;
-            Notice="Loading hospital...";Phase=RunPhase.Loading;SceneManager.LoadSceneAsync("Hospital");return true;
+            Notice="Loading hospital...";Phase=RunPhase.Loading;SceneTravel.Go("Hospital");return true;
         }
         bool FlushTake()
         {
@@ -147,7 +147,7 @@ namespace SpookTuber
                 if(countdown<=0)Complete(true);
             }
         }
-        bool Complete(bool extracted)
+        bool Complete(bool extracted,string destination="ProductionHouse")
         {
             if(Phase!=RunPhase.Hospital&&Phase!=RunPhase.Extracting)return false;
             if(!FlushTake()){Phase=RunPhase.Hospital;return false;}
@@ -161,7 +161,13 @@ namespace SpookTuber
             }
             if(!SaveJournal(next)){Phase=RunPhase.Hospital;return false;}
             Notice=extracted?"BACK HOME / equipment recovered / review footage at the desk":"CLOUD RECOVERY / crew and basic equipment restored";
-            Phase=RunPhase.Returning;SceneManager.LoadSceneAsync("ProductionHouse");return true;
+            Phase=RunPhase.Returning;SceneTravel.Go(destination);return true;
+        }
+        public bool ReturnToTitle()
+        {
+            if(Phase==RunPhase.Hospital||Phase==RunPhase.Extracting)return Complete(false,"MainMenu");
+            if(Phase!=RunPhase.House||!FlushTake()||!SaveJournal())return false;
+            Phase=RunPhase.Returning;SceneTravel.Go("MainMenu");return true;
         }
         public bool ReviewLastMission()
         {
@@ -170,7 +176,7 @@ namespace SpookTuber
             }
             if(!FlushTake())return false;
             string scene=CrewTake.SceneForTake(record.takePath);if(scene==null){Notice="Footage content is unavailable / original file kept";return false;}
-            studioRequested=false;reviewPath=record.takePath;reviewLoading=true;Phase=RunPhase.Review;SceneManager.LoadSceneAsync(scene);return true;
+            studioRequested=false;reviewPath=record.takePath;reviewLoading=true;Phase=RunPhase.Review;SceneTravel.Go(scene);return true;
         }
         public bool OpenStudio()
         {
@@ -185,10 +191,10 @@ namespace SpookTuber
             string scene=CrewTake.SceneForTake(path);if(scene==null){Notice="Footage content is unavailable / original file kept";return false;}
             if(Studio.IsOpen)Studio.Close(false);
             studioRequested=true;reviewPath=path;reviewLoading=true;Phase=RunPhase.Review;Notice="Bobby is loading the footage...";
-            SceneManager.LoadSceneAsync(scene);return true;
+            SceneTravel.Go(scene);return true;
         }
         public void CloseStudio(){if(Phase==RunPhase.Review)ReturnFromReview();}
-        void ReturnFromReview(){Phase=RunPhase.Returning;Notice="FOOTAGE REVIEW COMPLETE";SceneManager.LoadSceneAsync("ProductionHouse");}
+        void ReturnFromReview(){Phase=RunPhase.Returning;Notice="FOOTAGE REVIEW COMPLETE";SceneTravel.Go("ProductionHouse");}
         Journal Copy()=>JsonUtility.FromJson<Journal>(JsonUtility.ToJson(record));
         public bool SaveDraft(BobbyEpisode episode,CrewTake source)
         {

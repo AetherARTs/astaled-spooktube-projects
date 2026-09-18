@@ -1,4 +1,5 @@
-PASS
-Build files SHA-256 matched: 294
-Executable: D:\Projects\SPOOKYTUBER\Builds\Windows\SpookTuber.exe
-Revision 4 / local evidence, Bobby editing, episode upload and progression
+PASS / Windows revision 6 delivered 2026-09-19
+Executable: D:/Projects/SPOOKYTUBER/Builds/Windows/SpookTuber.exe
+Previous build preserved: D:/Projects/SPOOKYTUBER/Builds/Windows-before-v6
+Assembly SHA256: 0A1973711C08FF90236953EC17A83148F2CACACDD32F2CA46B11845CEE163940
+Visible GTX1050Ti 1600x900 smoke: home median 16.7 ms, hospital recording median 24.0 ms / p95 29.8 ms. Stationary warm sample, not a full-play benchmark.

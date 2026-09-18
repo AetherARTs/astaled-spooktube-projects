@@ -1,0 +1,6 @@
+Building 37 x 68 m / 2516 square metres
+Exterior 47 x 24 m
+Central corridor 5 m / outer corridors 4 m
+8 clinical rooms, reception, loop passages
+Transforms before runtime UI: 1901
+Player scale 0.88

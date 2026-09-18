@@ -1,0 +1,11 @@
+PASS
+Automatic path uses a separate unpaid career with real recorded source
+Load recovered tape for Bobby automatic editing
+Automatic path starts with an explicit handoff choice
+Failed automatic upload keeps choice available and pays nothing
+One Bobby choice edits and uploads without a separate publish click
+Automatic release settles Credit and contract Views independently
+Bobby starts playback of the completed episode
+Automatic result plays the recorded episode
+Automatic release cannot pay or fill quota twice
+Automatic episode and quota survive career reload

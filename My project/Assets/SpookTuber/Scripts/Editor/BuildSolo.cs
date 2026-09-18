@@ -21,7 +21,8 @@ namespace SpookTuber.Editor
         static Transform world;
         static readonly List<Vector3> navigationChecks=new();
         static readonly Dictionary<string,Material> palette=new();
-        static int gearIndex;
+        static int gearIndex,practicalIndex;
+        static bool darkInterior;
         public static void LightingProbe()
         {
             foreach(string scene in new[]{"ProductionHouse","Hospital"}){
@@ -61,7 +62,7 @@ namespace SpookTuber.Editor
             if(!Application.isBatchMode&&!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())return;
             try{
                 AssetDatabase.Refresh();Materials();PlayerPrefab();House();Hospital();
-                var paths=new[]{"ProductionHouse.unity","Hospital.unity","Legacy/ProductionHouse_v4.unity","Legacy/Hospital_v4.unity"}.Select(n=>Root+"Scenes/"+n).ToArray();
+                var paths=new[]{"MainMenu.unity","Loading.unity","ProductionHouse.unity","Hospital.unity","Legacy/ProductionHouse_v4.unity","Legacy/Hospital_v4.unity","Legacy/ProductionHouse_v5.unity","Legacy/Hospital_v5.unity"}.Select(n=>Root+"Scenes/"+n).Where(File.Exists).ToArray();
                 EditorBuildSettings.scenes=paths.Select(p=>new EditorBuildSettingsScene(p,true)).Concat(EditorBuildSettings.scenes.Where(s=>!paths.Contains(s.path))).ToArray();
                 AssetDatabase.SaveAssets();File.WriteAllText(Path.Combine(QA,"v5_scene_build.txt"),"PASS / enlarged home and hospital / native NavMesh routes / archived v4 replay scenes\n");
                 if(Application.isBatchMode)EditorApplication.Exit(0);
@@ -107,6 +108,7 @@ namespace SpookTuber.Editor
             string path=Root+"Prefabs/PF_CrewPlayer.prefab";var player=PrefabUtility.LoadPrefabContents(path);
             player.transform.localScale=Vector3.one*.88f;
             var motor=player.GetComponent<CrewMotor>();motor.walkSpeed=2.65f;motor.sprintSpeed=5.25f;motor.jumpHeight=.95f;
+            motor.shoulderLight.intensity=35;motor.shoulderLight.range=16;motor.shoulderLight.spotAngle=58;motor.shoulderLight.innerSpotAngle=30;
             var cc=player.GetComponent<CharacterController>();cc.radius=.20f;cc.stepOffset=.23f;cc.slopeLimit=48;cc.skinWidth=.018f;
             foreach(var rb in player.GetComponent<CrewBody>().ragdoll)rb.interpolation=RigidbodyInterpolation.None;
             var phone=player.GetComponent<CrewPhone>();if(!phone)phone=player.AddComponent<CrewPhone>();
@@ -119,12 +121,12 @@ namespace SpookTuber.Editor
         }
         static void Begin(string name,bool hospital)
         {
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);world=new GameObject(name).transform;gearIndex=0;navigationChecks.Clear();
-            RenderSettings.skybox=null;RenderSettings.ambientMode=AmbientMode.Flat;RenderSettings.ambientLight=hospital?new Color(.16f,.19f,.20f):new Color(.36f,.34f,.30f);
-            RenderSettings.fog=hospital;RenderSettings.fogMode=FogMode.Linear;RenderSettings.fogStartDistance=14;RenderSettings.fogEndDistance=60;RenderSettings.fogColor=new Color(.035f,.050f,.055f);
-            var sun=new GameObject(hospital?"Moon":"Dusk").AddComponent<Light>();sun.type=LightType.Directional;sun.color=hospital?new Color(.37f,.50f,.63f):new Color(1,.74f,.49f);sun.intensity=hospital?.28f:.65f;sun.transform.rotation=Quaternion.Euler(47,-28,0);sun.shadows=LightShadows.Soft;
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);world=new GameObject(name).transform;gearIndex=0;practicalIndex=0;darkInterior=hospital;navigationChecks.Clear();
+            RenderSettings.skybox=null;RenderSettings.ambientMode=AmbientMode.Flat;RenderSettings.ambientLight=hospital?new Color(.022f,.028f,.037f):new Color(.36f,.34f,.30f);
+            RenderSettings.fog=hospital;RenderSettings.fogMode=FogMode.Linear;RenderSettings.fogStartDistance=12;RenderSettings.fogEndDistance=48;RenderSettings.fogColor=new Color(.004f,.007f,.011f);
+            var sun=new GameObject(hospital?"Moon":"Dusk").AddComponent<Light>();sun.type=LightType.Directional;sun.color=hospital?new Color(.37f,.50f,.63f):new Color(1,.74f,.49f);sun.intensity=hospital?.06f:.65f;sun.transform.rotation=Quaternion.Euler(47,-28,0);sun.shadows=LightShadows.Soft;
             var volume=new GameObject("ProductionGrade").AddComponent<Volume>();volume.isGlobal=true;
-            var profile=ScriptableObject.CreateInstance<VolumeProfile>();var tone=profile.Add<Tonemapping>(true);tone.mode.Override(TonemappingMode.Neutral);var color=profile.Add<ColorAdjustments>(true);color.contrast.Override(3);color.saturation.Override(-6);color.postExposure.Override(.35f);
+            var profile=ScriptableObject.CreateInstance<VolumeProfile>();var tone=profile.Add<Tonemapping>(true);tone.mode.Override(TonemappingMode.Neutral);var color=profile.Add<ColorAdjustments>(true);color.contrast.Override(3);color.saturation.Override(-6);color.postExposure.Override(hospital?0:.35f);
             var vignette=profile.Add<Vignette>(true);vignette.intensity.Override(.17f);vignette.smoothness.Override(.65f);
             string profilePath=Env+"Materials/"+(hospital?"Hospital":"Home")+"Grade.asset";var existing=AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
             if(existing){foreach(var component in existing.components)Object.DestroyImmediate(component,true);existing.components.Clear();foreach(var component in profile.components){AssetDatabase.AddObjectToAsset(component,existing);existing.components.Add(component);}Object.DestroyImmediate(profile);profile=existing;}else{AssetDatabase.CreateAsset(profile,profilePath);foreach(var component in profile.components)AssetDatabase.AddObjectToAsset(component,profile);}
@@ -133,9 +135,10 @@ namespace SpookTuber.Editor
         static void Zone(string name,Vector3 center,Vector3 size){var go=new GameObject("Zone_"+name);go.transform.SetParent(world);go.transform.position=center;var zone=go.AddComponent<MapZone>();zone.label=name;zone.size=size;}
         static void Practical(Vector3 pos,bool warm=false,bool lit=true)
         {
+            if(darkInterior)lit&=practicalIndex++%4==0;
             var fixture=Prop(warm?"P_PendantLamp":"H_Fluorescent",pos,0,false);
             if(!lit){foreach(var renderer in fixture.GetComponentsInChildren<Renderer>())renderer.sharedMaterials=renderer.sharedMaterials.Select(m=>m.name=="H_Light"?palette["H_DarkMetal"]:m).ToArray();return;}
-            var lamp=new GameObject("Practical_"+pos).AddComponent<Light>();lamp.transform.SetParent(world);lamp.transform.position=pos-Vector3.up*.3f;lamp.transform.rotation=Quaternion.Euler(90,0,0);lamp.type=LightType.Spot;lamp.spotAngle=135;lamp.innerSpotAngle=95;lamp.range=warm?11:12;lamp.intensity=warm?70:90;
+            var lamp=new GameObject("Practical_"+pos).AddComponent<Light>();lamp.transform.SetParent(world);lamp.transform.position=pos-Vector3.up*.3f;lamp.transform.rotation=Quaternion.Euler(90,0,0);lamp.type=LightType.Spot;lamp.spotAngle=135;lamp.innerSpotAngle=95;lamp.range=darkInterior?7:warm?11:12;lamp.intensity=darkInterior?9:warm?70:90;
             lamp.color=warm?new Color(1,.74f,.44f):new Color(.72f,.83f,.81f);lamp.shadows=LightShadows.Soft;lamp.shadowBias=.02f;lamp.shadowNormalBias=.04f;lamp.cullingMask=~(1<<9);
         }
         static void Floor(Vector3 center,float width,float depth,bool house=false)

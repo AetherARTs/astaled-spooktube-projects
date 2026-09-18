@@ -19,7 +19,7 @@ namespace SpookTuber
         public bool Sliding=>slideTime>0;
         public bool Mantling=>mantleTime>0;
         public float Lean {get;private set;}
-        public bool InputBlocked=>!locked||body.IsDowned||phone&&phone.IsOpen||RunSession.Current&&(RunSession.Current.IsBusy||RunSession.Current.Studio.IsOpen)||mainCam&&mainCam.Take.Reviewing;
+        public bool InputBlocked=>GameShell.Active||!locked||body.IsDowned||phone&&phone.IsOpen||RunSession.Current&&(RunSession.Current.IsBusy||RunSession.Current.Studio.IsOpen)||mainCam&&mainCam.Take.Reviewing;
         public bool Aiming=>!InputBlocked&&aim!=null&&aim.IsPressed();
         CharacterController motor;
         CrewBody body;
@@ -34,6 +34,7 @@ namespace SpookTuber
         const int WorldMask=~((1<<8)|(1<<9));
         void Awake()
         {
+            if(shoulderLight)shoulderLight.cullingMask&=~((1<<8)|(1<<9));
             motor=GetComponent<CharacterController>();body=GetComponent<CrewBody>();standingHeight=motor.height;
             inventory=GetComponent<CrewInventory>();if(!inventory)inventory=gameObject.AddComponent<CrewInventory>();
             glove=GetComponent<GravityGlove>();if(!glove)glove=gameObject.AddComponent<GravityGlove>();
@@ -57,16 +58,17 @@ namespace SpookTuber
         }
         InputAction Button(string name,string key,string pad=null){var action=inputs.AddAction(name,InputActionType.Button,key);if(pad!=null)action.AddBinding(pad);return action;}
         void OnEnable(){inputs?.Enable();}
-        void Start(){SetCursor(true);}
+        void Start(){SetCursor(true);GameSettings.Apply();}
         void OnDisable(){inputs?.Disable();SetCursor(false);}
         void OnDestroy(){inputs?.Dispose();}
         public void SetCursor(bool value){locked=value;Cursor.lockState=value?CursorLockMode.Locked:CursorLockMode.None;Cursor.visible=!value;}
         void Update()
         {
+            if(GameShell.Active||GameUi.InputConsumed){Idle();return;}
             var session=RunSession.Current;var take=mainCam?mainCam.Take:null;
             if(session&&(session.Studio.IsOpen||session.IsBusy)){Idle();return;}
             if(phone.IsOpen){Idle();if(phoneToggle.WasPressedThisFrame())phone.Close();return;}
-            if(pause.WasPressedThisFrame())SetCursor(!locked);
+            if(pause.WasPressedThisFrame()){if(take&&take.Reviewing)take.EndReview();else GameShell.Pause(this);Idle();return;}
             if(phoneToggle.WasPressedThisFrame()&&!body.IsDowned&&(!take||!take.Reviewing)){phone.Open();Idle();return;}
             if(take&&review.WasPressedThisFrame()&&!body.IsDowned&&(!session||session.CanReview)){
                 if(take.Reviewing)take.EndReview();else if(session&&session.Phase==RunSession.RunPhase.House&&take.FrameCount==0&&!string.IsNullOrEmpty(session.LastTake))session.ReviewLastMission();else take.BeginReview();
@@ -95,6 +97,7 @@ namespace SpookTuber
         }
         void Idle()
         {
+            if(status)status.text=mainCam&&mainCam.Take.Recording?$"REC  {mainCam.Take.Duration:00.0} / 60s":"";
             PlanarVelocity=Vector3.zero;slideTime=0;body.animator.SetFloat("Speed",0);if(hint)hint.text="";glove.Release();
             if(!body.IsDowned&&motor.enabled&&(!mainCam||!mainCam.Take.Reviewing)){
                 float dt=Mathf.Min(Time.deltaTime,.05f);vertical=motor.isGrounded?-2:Mathf.Max(-30,vertical-16*dt);motor.Move(Vector3.up*(vertical*dt));
