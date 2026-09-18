@@ -1,0 +1,141 @@
+{
+  "status": "PASS",
+  "assets": {
+    "P_Sofa": {
+      "triangles": 2444,
+      "vertices": 1248
+    },
+    "P_CoffeeTable": {
+      "triangles": 2708,
+      "vertices": 1376
+    },
+    "P_DiningTable": {
+      "triangles": 1768,
+      "vertices": 896
+    },
+    "P_DiningChair": {
+      "triangles": 2460,
+      "vertices": 1248
+    },
+    "P_KitchenRun": {
+      "triangles": 7176,
+      "vertices": 3648
+    },
+    "P_Fridge": {
+      "triangles": 1572,
+      "vertices": 800
+    },
+    "P_BunkBed": {
+      "triangles": 6244,
+      "vertices": 3168
+    },
+    "P_Bookshelf": {
+      "triangles": 9588,
+      "vertices": 4896
+    },
+    "P_EditDesk": {
+      "triangles": 7864,
+      "vertices": 4000
+    },
+    "P_EquipmentRack": {
+      "triangles": 6716,
+      "vertices": 3424
+    },
+    "P_OfficeChair": {
+      "triangles": 4400,
+      "vertices": 2234
+    },
+    "P_Plant": {
+      "triangles": 7908,
+      "vertices": 4010
+    },
+    "P_PendantLamp": {
+      "triangles": 1048,
+      "vertices": 530
+    },
+    "H_Wall_Detailed": {
+      "triangles": 7380,
+      "vertices": 3776
+    },
+    "H_WindowBay": {
+      "triangles": 1892,
+      "vertices": 968
+    },
+    "H_DoorPocket": {
+      "triangles": 7020,
+      "vertices": 3552
+    },
+    "H_SlidingLeaf": {
+      "triangles": 2324,
+      "vertices": 1184
+    },
+    "H_CeilingGrid": {
+      "triangles": 4820,
+      "vertices": 2480
+    },
+    "H_PipeRun": {
+      "triangles": 6636,
+      "vertices": 3360
+    },
+    "H_Radiator": {
+      "triangles": 3700,
+      "vertices": 1888
+    },
+    "H_ReceptionDesk": {
+      "triangles": 2312,
+      "vertices": 1200
+    },
+    "H_Wheelchair": {
+      "triangles": 11624,
+      "vertices": 5888
+    },
+    "H_Radiology": {
+      "triangles": 1572,
+      "vertices": 800
+    },
+    "H_MorgueBank": {
+      "triangles": 6416,
+      "vertices": 3264
+    },
+    "H_Sink": {
+      "triangles": 1196,
+      "vertices": 608
+    },
+    "H_Toilet": {
+      "triangles": 940,
+      "vertices": 480
+    },
+    "H_Rubble": {
+      "triangles": 3384,
+      "vertices": 1728
+    },
+    "H_MantleLedge": {
+      "triangles": 1768,
+      "vertices": 896
+    },
+    "EQP_Phone": {
+      "triangles": 1004,
+      "vertices": 512
+    },
+    "EQP_GravityGlove": {
+      "triangles": 2956,
+      "vertices": 1504
+    },
+    "EQP_ProductionLight": {
+      "triangles": 1820,
+      "vertices": 928
+    },
+    "EQP_Noisemaker": {
+      "triangles": 944,
+      "vertices": 488
+    },
+    "NPC_Bobby": {
+      "triangles": 13808,
+      "movable_groups": 4
+    },
+    "NPC_SupplyClerk": {
+      "triangles": 13808,
+      "movable_groups": 4
+    }
+  }
+}
